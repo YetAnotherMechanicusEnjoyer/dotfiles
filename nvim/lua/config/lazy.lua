@@ -41,6 +41,7 @@ require('lazy').setup({
     "scottmckendry/cyberdream.nvim",
     "navarasu/onedark.nvim",
     "eldritch-theme/eldritch.nvim",
+    "loctvl842/monokai-pro.nvim",
     {
         'mustardfrog/pinkish_day',
         lazy = true,
