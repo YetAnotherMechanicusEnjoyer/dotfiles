@@ -140,8 +140,8 @@ require('lazy').setup({
 
     -- LSP
     {
-        --"williamboman/mason.nvim",
-        --"williamboman/mason-lspconfig.nvim",
+        "williamboman/mason.nvim",
+        "williamboman/mason-lspconfig.nvim",
         "neovim/nvim-lspconfig",
     },
 
@@ -198,9 +198,7 @@ require('lazy').setup({
     {
         "folke/noice.nvim",
         event = "VeryLazy",
-        opts = {
-            -- add any options here
-        },
+        opts = {},
         dependencies = {
             "MunifTanjim/nui.nvim",
         }
