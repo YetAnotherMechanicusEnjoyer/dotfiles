@@ -34,3 +34,7 @@ keymap.set("n", "<space>e", vim.diagnostic.open_float, bufopts)
 
 -- transparency
 keymap.set("n", "<leader>cc", "<cmd>TransparentToggle<cr>")
+
+-- bufferline
+keymap.set("n", "<leader><Right>", ":BufferLineCycleNext<cr>")
+keymap.set("n", "<leader><Left>", ":BufferLineCyclePrev<cr>")
