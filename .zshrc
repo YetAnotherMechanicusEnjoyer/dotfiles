@@ -110,7 +110,7 @@ alias ramene_le_coton="git pull";
 alias http_python_server="python3 -m http.server"
 
 #template
-alias template="cp -r ~/template/include . && cp -r ~/template/src . && cp ~/template/Makefile ."
+alias template="cp -r ~/template/include . && cp -r ~/template/src . && cp ~/template/Makefile . && cp -r ~/template/tests . && cp ~/template/.gitignore . && cp -r ~/template/assets . && bear -- make && fclean"
 
 #coding style
 alias gestapo="sh ~/Git/backup/everyting/coding-style-checker/coding-style.sh . ."
@@ -124,15 +124,17 @@ alias grand_terrassement="sh $HOME/$GIT_PATH/mr_clean"
 #zsh
 alias zshrc="$EDITOR ~/.zshrc"
 
-#clear
-alias clear="clear && ff"
-
 # Afficher l'historique avec des commandes utiles (par exemple l'alias 'h' pour afficher l'historique)
 alias h='history | tail -20 | bat --color=always'
 
+alias fastfetch='fastfetch --logo Windows'
+
 alias nf='fastfetch'
 alias pf='fastfetch'
-alias ff='fastfetch --config examples/13'
+alias ff='fastfetch'
+
+#clear
+alias clear="clear && ff"
 
 MONITORS="~/.config/hypr/conf/monitor.conf"
 alias double_screen="cp ~/backup/monitor/doublescreen/monitor.conf $MONITORS"
@@ -146,12 +148,22 @@ alias code="zed"
 alias l='eza -x --icons=always --hyperlink --color=always'
 alias ls='eza -x --icons=always --hyperlink --color=always -a'
 alias ll='eza -alx --icons=always --hyperlink --color=always'
-alias tree='eza -aTx --icons=always --hyperlink --color=always'
+alias tree='eza -aTx --icons=always --hyperlink --color=always -I ".git"'
 
 alias clock='tclock -c Yellow'
 alias timer='tclock timer -P -d'
 alias countdown='tclock countdown -t'
 alias chrono='tclock stopwatch'
 
+alias run='make run'
+alias tests='make run_tests'
+alias fclean='make fclean'
+alias re='make re'
+
+alias please='/usr/bin/sudo'
+alias sudo='echo "say : please"'
+alias sl='ls'
+
 eval "$(starship init zsh)"
+export PATH="$PATH:$HOME/scripts"
 bindkey "^[[3~" delete-char
