@@ -1,36 +1,37 @@
-require("config.lazy")
-require("core.options")
-require("core.keymaps")
-require("core.colorscheme")
-require("plugins.comment")
-require("plugins.telescope")
-require("plugins.lsp-config")
-require("plugins.completions")
-require("plugins.rich-presence")
-require("plugins.transparent")
-require("plugins.cursorline")
-require("plugins.neoscroll")
-require("plugins.flirt")
-require("plugins.indent-blankline")
-require("plugins.nvim-tree")
-require("plugins.gitsigns")
-require("plugins.bufferline")
-require("plugins.neotree")
-require("plugins.galaxyline")
-require("plugins.treesitter")
-require("plugins.noice")
-require("plugins.toggleterm")
-require("plugins.which-key")
-require("plugins.numb")
+vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46/"
+vim.g.mapleader = " "
 
-vim.g.strip_whitespace_confirm = 0
-vim.opt.termguicolors = true
+-- bootstrap lazy and all plugins
+local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
+if not vim.uv.fs_stat(lazypath) then
+  local repo = "https://github.com/folke/lazy.nvim.git"
+  vim.fn.system { "git", "clone", "--filter=blob:none", repo, "--branch=stable", lazypath }
+end
+
+vim.opt.rtp:prepend(lazypath)
+
+local lazy_config = require "configs.lazy"
+
+-- load plugins
+require("lazy").setup({
+  {
+    "NvChad/NvChad",
+    lazy = false,
+    branch = "v2.5",
+    import = "nvchad.plugins",
+  },
+
+  { import = "plugins" },
+}, lazy_config)
+
+-- load theme
+dofile(vim.g.base46_cache .. "defaults")
+dofile(vim.g.base46_cache .. "statusline")
+
+require "options"
+require "nvchad.autocmds"
+
+vim.schedule(function()
+  require "mappings"
+end)
