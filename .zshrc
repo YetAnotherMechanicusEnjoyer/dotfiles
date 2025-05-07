@@ -153,9 +153,10 @@ alias please='/usr/bin/sudo'
 alias sudo='echo "say : please"'
 alias sl='ls'
 
+alias ta='tmux attach'
+
 export PATH="$PATH:$HOME/.tmuxifier/bin:$HOME/scripts"
 
 eval "$(starship init zsh)"
 eval "$(tmuxifier init -)"
-tmux attach
 bindkey "^[[3~" delete-char
