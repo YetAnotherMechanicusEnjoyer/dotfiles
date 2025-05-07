@@ -99,11 +99,11 @@ HISTSIZE=10000
 SAVEHIST=10000
 setopt appendhistory
 
-GIT_PATH="Git/backup/everyting/config_zsh"
+DOTFILES_PATH="$HOME/my_dotfiles"
 EDITOR="nvim"
 
 #Git
-alias train_de_la_hype="sh $HOME/$GIT_PATH/push_that.sh"
+alias train_de_la_hype="sh $DOTFILES_PATH/push_that.sh"
 alias ramene_le_coton="git pull";
 
 #Server
@@ -113,13 +113,10 @@ alias http_python_server="python3 -m http.server"
 alias template="cp -r ~/template/include . && cp -r ~/template/src . && cp ~/template/Makefile . && cp -r ~/template/tests . && cp ~/template/.gitignore . && cp -r ~/template/assets . && bear -- make && fclean"
 
 #coding style
-alias gestapo="sh ~/Git/backup/everyting/coding-style-checker/coding-style.sh . ."
+alias gestapo="sh $DOTFILES_PATH/coding-style.sh . ."
 alias documents_secret_defense="cat coding-style-reports.log"
 alias censure="rm -f coding-style-reports.log"
 alias appel_du_parti="gestapo && documents_secret_defense && censure"
-
-#rm
-alias grand_terrassement="sh $HOME/$GIT_PATH/mr_clean"
 
 #zsh
 alias zshrc="$EDITOR ~/.zshrc"
@@ -127,23 +124,15 @@ alias zshrc="$EDITOR ~/.zshrc"
 # Afficher l'historique avec des commandes utiles (par exemple l'alias 'h' pour afficher l'historique)
 alias h='history | tail -20 | bat --color=always'
 
-alias fastfetch='fastfetch --logo Windows'
+alias fastfetch='fastfetch --config examples/13'
 
 alias nf='fastfetch'
 alias pf='fastfetch'
 alias ff='fastfetch'
 
-#clear
 alias clear="clear && ff"
 
-MONITORS="~/.config/hypr/conf/monitor.conf"
-alias double_screen="cp ~/backup/monitor/doublescreen/monitor.conf $MONITORS"
-alias single_screen="cp ~/backup/monitor/singlescreen/monitor.conf $MONITORS"
-
 alias cr="cargo build && sleep 0.2 && cargo run"
-
-alias zed="zed ."
-alias code="zed"
 
 alias l='eza -x --icons=always --hyperlink --color=always'
 alias ls='eza -x --icons=always --hyperlink --color=always -a'
@@ -164,6 +153,9 @@ alias please='/usr/bin/sudo'
 alias sudo='echo "say : please"'
 alias sl='ls'
 
+export PATH="$PATH:$HOME/.tmuxifier/bin:$HOME/scripts"
+
 eval "$(starship init zsh)"
-export PATH="$PATH:$HOME/scripts"
+eval "$(tmuxifier init -)"
+tmux attach
 bindkey "^[[3~" delete-char
