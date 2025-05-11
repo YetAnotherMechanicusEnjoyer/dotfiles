@@ -1,3 +1,2 @@
-git add .
-git commit -m "$1"
-git push
+echo "use lazygit like a real chad"
+lazygit
