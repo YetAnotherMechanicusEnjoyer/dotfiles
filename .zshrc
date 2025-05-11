@@ -99,7 +99,7 @@ HISTSIZE=10000
 SAVEHIST=10000
 setopt appendhistory
 
-DOTFILES_PATH="$HOME/my_dotfiles"
+DOTFILES_PATH="$HOME/my_dotfiles/scripts"
 EDITOR="nvim"
 
 #Git
@@ -121,10 +121,7 @@ alias appel_du_parti="gestapo && documents_secret_defense && censure"
 #zsh
 alias zshrc="$EDITOR ~/.zshrc"
 
-# Afficher l'historique avec des commandes utiles (par exemple l'alias 'h' pour afficher l'historique)
 alias h='history | tail -20 | bat --color=always'
-
-alias fastfetch='fastfetch --config examples/13'
 
 alias nf='fastfetch'
 alias pf='fastfetch'
