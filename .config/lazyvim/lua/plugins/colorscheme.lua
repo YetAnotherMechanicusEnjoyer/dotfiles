@@ -11,4 +11,5 @@ return {
             colorscheme = "eldritch",
         },
     },
+    "xiyaowong/transparent.nvim",
 }
