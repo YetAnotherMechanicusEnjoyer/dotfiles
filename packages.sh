@@ -19,6 +19,7 @@ sudo pacman -S \
   criterion \
   tmux \
   discord \
+  bear \
   ghostty
 
 git clone https://github.com/YetAnotherMechanicusEnjoyer/template.git
