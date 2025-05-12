@@ -18,6 +18,7 @@ sudo pacman -S \
   fastfetch \
   criterion \
   tmux \
+  cmake \
   discord \
   bear \
   ghostty
