@@ -12,6 +12,7 @@ sudo pacman -S \
   starship \
   valgrind \
   neovim \
+  lazygit \
   vim \
   nano \
   fastfetch \
