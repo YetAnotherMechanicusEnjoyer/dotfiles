@@ -14,7 +14,6 @@ sudo pacman -S \
   neovim \
   vim \
   nano \
-  emacs \
   fastfetch \
   criterion \
   tmux \
