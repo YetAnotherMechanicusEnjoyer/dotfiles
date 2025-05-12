@@ -154,6 +154,7 @@ alias ta='tmux attach'
 
 export PATH="$PATH:$HOME/.tmuxifier/bin:$HOME/scripts"
 
+fastfetch
+
 eval "$(starship init zsh)"
-eval "$(tmuxifier init -)"
 bindkey "^[[3~" delete-char
