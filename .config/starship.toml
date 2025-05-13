@@ -85,7 +85,7 @@ text_light = "#26272A"
 [username]
 style_user = 'os'
 style_root = 'os_admin'
-format = '[]($style)[ magos](bg:$style fg:text_color)[]($style)'
+format = '[]($style)[ archmagos](bg:$style fg:text_color)[]($style)'
 disabled = false
 show_always = true
 
@@ -101,7 +101,7 @@ read_only_style = "fg:text_color bg:directory"
 before_repo_root_style = "fg:text_color bg:directory"
 truncation_symbol = "…/"
 truncate_to_repo = true
-read_only ="  "
+read_only = "  "
 
 [time]
 disabled = false
@@ -123,11 +123,11 @@ format = '([ ](fg:git_status)[ $all_status$ahead_behind ]($style)[](fg:git
 style = "fg:text_light bg:git_status"
 
 [docker_context]
-disabled=true
+disabled = true
 symbol = " "
 
 [package]
-disabled=true
+disabled = true
 
 [java]
 format = "[ ](fg:java)[$symbol$version](bg:java fg:text_color)[](fg:java)"
@@ -140,16 +140,16 @@ format = "[ ](fg:node)[$symbol$version]($style)[](fg:node)"
 style = "bg:node fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled=false
+disabled = false
 
 [rust]
 format = "[ ](fg:rust)[$symbol$version](bg:rust fg:text_color)[](fg:rust)"
 symbol = " "
 version_format = "${raw}"
-disabled=true
+disabled = true
 
 [python]
-disabled=false
+disabled = false
 format = '[ ](fg:python)[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\))]($style)[](fg:python)'
 symbol = " "
 version_format = "${raw}"
@@ -159,14 +159,14 @@ style = "fg:text_light bg:python"
 format = "[ ](fg:conda)[$symbol$environment]($style)[](fg:conda)"
 style = "bg:conda fg:text_color"
 ignore_base = false
-disabled=false
+disabled = false
 symbol = " "
 
 [c]
 format = "[ ](fg:clang)[$symbol($version(-$name) )](bg:clang fg:text_color)[](fg:clang)"
 symbol = " "
 version_format = "${raw}"
-disabled=true
+disabled = true
 
 [os.symbols]
 Alpine = " "
