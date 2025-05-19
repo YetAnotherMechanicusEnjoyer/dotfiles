@@ -29,3 +29,5 @@ sudo systemctl start sshd
 sudo systemctl enable sshd
 sudo systemctl start docker
 sudo systemctl enable docker
+
+sudo chsh -s /usr/bin/zsh "$USER"
