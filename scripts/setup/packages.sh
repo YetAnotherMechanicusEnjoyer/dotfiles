@@ -31,3 +31,4 @@ sudo systemctl start docker
 sudo systemctl enable docker
 
 sudo chsh -s /usr/bin/zsh "$USER"
+gum log --structured --level warn "Restart to change your default shell" shell "zsh"
