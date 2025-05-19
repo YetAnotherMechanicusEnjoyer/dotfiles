@@ -12,5 +12,10 @@ gum confirm && sh ./scripts/setup/git.sh
 echo -e "\n\e[1m\e[96mDo you want to clone some repos ?\e[0m"
 gum confirm && sh ./scripts/setup/repo.sh
 
+echo -e "\n\e[1m\e[96mDo you want to install Lxtharia's minegrub theme ?\e[0m"
+gum confirm && sudo sh ./grub/install_theme.sh
+
 echo -e "\n\e[1m\e[96mDo you want to install ML4W's hyprland dotfiles ?\e[0m"
 gum confirm && sh ./scripts/setup/hyprland_install.sh
+
+sh ./link.sh
