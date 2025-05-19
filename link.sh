@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 echo -e "\n\e[1m\e[96mDo you want to link config files ?\e[0m"
 gum confirm && echo || exit
 
