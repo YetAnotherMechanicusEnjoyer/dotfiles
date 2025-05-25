@@ -152,7 +152,7 @@ alias sl='ls'
 
 alias ta='tmux attach'
 
-export PATH="$PATH:$HOME/.tmuxifier/bin:$HOME/scripts"
+export PATH="$PATH:$HOME/.tmuxifier/bin:$HOME/scripts:$HOME/.cargo/bin:$HOME/scripts"
 
 fastfetch
 
