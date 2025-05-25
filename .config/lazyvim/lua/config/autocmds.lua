@@ -12,3 +12,14 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
         vim.b.autoformat = false
     end,
 })
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+    pattern = "*.c",
+    callback = function()
+        vim.lsp.buf_notify(0, "workspace/didChangeWatchedFiles", {
+            changes = {
+                { uri = vim.uri_from_bufnr(0), type = 2 },
+            },
+        })
+    end,
+})
