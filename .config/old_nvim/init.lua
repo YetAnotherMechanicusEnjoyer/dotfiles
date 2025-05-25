@@ -26,11 +26,7 @@ require("plugins.numb")
 vim.g.strip_whitespace_confirm = 0
 vim.opt.termguicolors = true
 
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
-vim.fn.sign_define("DiagnosticSignError",
-    {text = "", texthl = "DiagnosticSignError"})
+vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
+vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
+vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
+vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
