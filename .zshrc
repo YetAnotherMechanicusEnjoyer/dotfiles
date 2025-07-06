@@ -129,7 +129,7 @@ alias ff='fastfetch'
 
 alias clear="clear && ff"
 
-alias cr="cargo build && sleep 0.2 && cargo run && cargo clean"
+alias cr="cargo build && sleep 0.2 && cargo run"
 
 alias l='eza -x --icons=always --hyperlink --color=always'
 alias ls='eza -x --icons=always --hyperlink --color=always -a'
