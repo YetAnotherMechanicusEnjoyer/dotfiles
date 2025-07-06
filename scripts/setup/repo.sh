@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 FORMAT=$(gum choose "HTTPS" "SSH" "ZIP" "Cancel")
 
 if [ "$FORMAT" == "HTTPS" ]; then
