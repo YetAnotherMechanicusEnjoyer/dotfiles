@@ -9,6 +9,9 @@ CONFIG="$HOME/.config"
 
 rm -rf "$CONFIG/fastfetch" "$CONFIG/ghostty" "$CONFIG/nvim" "$CONFIG/starship.toml"
 
+cp ./.zshrc ~/YAME/
+cp ./.tmux.conf ~/YAME/
+
 printf "\e[95m"
 ln -svf "$HOME/YAME/.zshrc" "$HOME/.zshrc"
 ln -svf "$HOME/YAME/.tmux.conf" "$HOME/.tmux.conf"
