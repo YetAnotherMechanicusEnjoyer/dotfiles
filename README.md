@@ -2,7 +2,6 @@
 
 on skibidi thoses are my dotfiles
 
-
 > [!NOTE]
 > __OS__: `Arch Linux`
 >
