@@ -19,6 +19,7 @@ sudo pacman -S \
   bear \
   gum \
   docker \
+  docker-compose \
   mariadb \
   openssh \
   ghostty
