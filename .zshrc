@@ -153,8 +153,22 @@ alias sl='ls'
 alias ta='tmux attach'
 
 export PATH="$PATH:$HOME/.tmuxifier/bin:$HOME/scripts:$HOME/.cargo/bin:$HOME/scripts"
+export EDITOR="nvim"
 
 fastfetch
 
 eval "$(starship init zsh)"
 bindkey "^[[3~" delete-char
+bindkey '^H' backward-kill-word 
+bindkey '^Z' undo
+
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+  mkdir -p ~/.cache
+  exec Hyprland > ~/.cache/hyprland.log 2>&1
+fi
+
+if test -f ~/.local/state/quickshell/user/generated/terminal/sequences.txt; then
+    cat ~/.local/state/quickshell/user/generated/terminal/sequences.txt
+fi
+
+export QS_CONFIG_PATH=~/.config/quickshell/ii/shell.qml
