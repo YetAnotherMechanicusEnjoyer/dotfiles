@@ -6,7 +6,7 @@ return {
                 "<leader>e",
                 function()
                     require("neo-tree.command").execute({
-                        toggle = true,
+                        action = "focus",
                         dir = LazyVim.root(),
                     })
                 end,
@@ -17,7 +17,7 @@ return {
                 function()
                     require("neo-tree.command").execute({
                         source = "git_status",
-                        toggle = true,
+                        action = "focus",
                     })
                 end,
                 desc = "Git Explorer",
@@ -38,14 +38,15 @@ return {
                 default_component_configs = {
                     git_status = {
                         symbols = {
-                            added = "＋",
+                            added = "",
                             deleted = "🗑",
+                            modified = "󱇧",
                             renamed = "🖊",
-                            untracked = "+",
-                            ignored = "⮿",
-                            unstaged = "",
-                            staged = "",
-                            conflict = "⮻",
+                            untracked = "",
+                            ignored = "󰜺",
+                            unstaged = "",
+                            staged = "󰌴",
+                            conflict = "󰕚",
                         },
                     },
                 },
