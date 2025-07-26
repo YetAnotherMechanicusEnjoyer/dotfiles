@@ -1,6 +1,28 @@
 return {
     {
         "nvim-neo-tree/neo-tree.nvim",
+        keys = {
+            {
+                "<leader>e",
+                function()
+                    require("neo-tree.command").execute({
+                        toggle = true,
+                        dir = LazyVim.root(),
+                    })
+                end,
+                desc = "Explorer NeoTree (Root Dir)",
+            },
+            {
+                "<leader>ge",
+                function()
+                    require("neo-tree.command").execute({
+                        source = "git_status",
+                        toggle = true,
+                    })
+                end,
+                desc = "Git Explorer",
+            },
+        },
         branch = "v3.x",
         dependencies = {
             "nvim-lua/plenary.nvim",
