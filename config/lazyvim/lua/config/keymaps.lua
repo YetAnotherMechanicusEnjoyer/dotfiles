@@ -3,4 +3,3 @@
 -- Add any additional keymaps here
 vim.api.nvim_set_keymap("i", "jj", "<Esc>", { noremap = false })
 vim.keymap.set("n", "<leader>t", "<cmd>TransparentToggle<cr>")
-vim.keymap.set("n", "<leader>e", ":Neotree<cr>")
