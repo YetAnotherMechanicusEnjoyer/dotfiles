@@ -49,12 +49,4 @@ return {
             })
         end,
     },
-    {
-        "folke/snacks.nvim",
-        opts = {
-            explorer = {
-                enabled = false,
-            },
-        },
-    },
 }
