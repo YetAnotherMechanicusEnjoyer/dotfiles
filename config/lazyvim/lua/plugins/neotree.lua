@@ -8,6 +8,7 @@ return {
                     require("neo-tree.command").execute({
                         action = "focus",
                         dir = LazyVim.root(),
+                        position = "right",
                     })
                 end,
                 desc = "Explorer NeoTree (Root Dir)",
