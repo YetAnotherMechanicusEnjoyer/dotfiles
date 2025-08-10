@@ -7,7 +7,9 @@ on skibidi thoses are my dotfiles
 >
 > __DE__: `Hyprland`
 >
-> __Term__: `Ghostty (+ tmux if needed)`
+> __Bootloader__: `Grub`
+>
+> __Term__: `eDEX-UI & Ghostty (+ tmux if needed)`
 >
 > __Shell__: `zsh`
 >
@@ -22,4 +24,4 @@ on skibidi thoses are my dotfiles
 > __Misc__: `Some usefull shell scripts`
 
 > [!TIP]
-> With the help of [ML4W's dotfiles](https://github.com/mylinuxforwork/dotfiles)
+> With the help of [ML4W's dotfiles](https://github.com/mylinuxforwork/dotfiles) & [Lxtharia's Minegrub Theme](https://github.com/Lxtharia/minegrub-theme)
