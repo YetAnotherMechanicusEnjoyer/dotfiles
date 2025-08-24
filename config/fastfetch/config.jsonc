@@ -17,10 +17,14 @@
       "\u001b[55C"
     ],
     "bar": {
-      "charElapsed": "═",
-      "charTotal": "─",
-      "borderLeft": "〚",
-      "borderRight": "〛",
+      "char": {
+        "elapsed": "═",
+        "total": "─"
+      },
+      "border": {
+        "left": "〚",
+        "right": " 〛"
+      },
       "width": 15
     },
     "percent": {
