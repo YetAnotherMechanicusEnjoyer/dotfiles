@@ -159,8 +159,13 @@ fastfetch
 
 eval "$(starship init zsh)"
 bindkey "^[[3~" delete-char
+bindkey "^[[3;5~" kill-word
 bindkey '^H' backward-kill-word 
 bindkey '^Z' undo
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
+alias iusearchbtw="docker build -t arch ~/my_dotfiles/docker/archlinux/ && docker run --rm -it arch /bin/bash"
 
 if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
   mkdir -p ~/.cache
