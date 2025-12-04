@@ -19,3 +19,5 @@ RUN git clone https://aur.archlinux.org/yay-bin.git
 WORKDIR /home/builder/yay-bin
 
 RUN makepkg -si --noconfirm
+
+WORKDIR /home/builder
