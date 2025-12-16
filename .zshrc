@@ -165,7 +165,7 @@ bindkey '^Z' undo
 bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 
-alias iusearchbtw="docker build -t arch ~/my_dotfiles/docker/archlinux/ && docker run --rm -it arch /bin/bash"
+alias iusearchbtw="docker build -t arch ~/dotfiles/docker/archlinux/ && docker run --rm -it arch /bin/bash"
 
 if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
   mkdir -p ~/.cache
@@ -176,4 +176,4 @@ if test -f ~/.local/state/quickshell/user/generated/terminal/sequences.txt; then
     cat ~/.local/state/quickshell/user/generated/terminal/sequences.txt
 fi
 
-export QS_CONFIG_PATH=~/.config/quickshell/ii/shell.qml
+sh ~/dotfiles/scripts/load_tokens.sh
