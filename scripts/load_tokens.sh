@@ -3,7 +3,7 @@
 TOKEN_FILE="$HOME/dotfiles/.tokens"
 
 if [[ ! -f "$TOKEN_FILE" ]]; then
-  echo "Error: File $TOKEN_FILE not found."
+  echo "Error: File $TOKEN_FILE not found." >>"$HOME/.yame/errors.log"
   return 1 2>/dev/null
 fi
 
