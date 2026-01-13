@@ -91,9 +91,18 @@ fi
 echo
 
 # Flatpak
-echo ":: Searching for Flatpak updates..."
-flatpak update
-echo
+if [[ $(_checkCommandExists "flatpak") == 0 ]]; then
+  echo ":: Searching for Flatpak updates..."
+  flatpak update
+  echo
+fi
+
+# Rustup
+if [[ $(_checkCommandExists "rustup") == 0 ]]; then
+  echo ":: Updating rustup"
+  rustup update
+  echo
+fi
 
 # Reload Waybar
 pkill -RTMIN+1 waybar
