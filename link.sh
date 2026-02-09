@@ -8,7 +8,7 @@ NVIM=$(gum choose "lazyvim" "old_nvim")
 CONFIG="$HOME/.config"
 DOTFILES="$HOME/.yame"
 
-rm -rf "$CONFIG/fastfetch" "$CONFIG/ghostty" "$CONFIG/nvim" "$CONFIG/starship.toml"
+rm -rf "$CONFIG/fastfetch" "$CONFIG/ghostty" "$CONFIG/nvim" "$CONFIG/starship.toml" "$CONFIG/zshrc.d"
 
 cp ./.zshrc ~/.yame/
 cp ./.tmux.conf ~/.yame/
@@ -20,5 +20,6 @@ ln -svf "$DOTFILES/config/fastfetch/" "$CONFIG/fastfetch"
 ln -svf "$DOTFILES/config/ghostty/" "$CONFIG/ghostty"
 ln -svf "$DOTFILES/config/$NVIM/" "$CONFIG/nvim"
 ln -svf "$DOTFILES/config/starship.toml" "$CONFIG/starship.toml"
+ln -svf "$DOTFILES/config/zshrc.d/" "$CONFIG/zshrc.d"
 sudo ln -svf "$DOTFILES/scripts/updatearch.sh" "/usr/bin/updatearch"
 printf "\e[0m"
