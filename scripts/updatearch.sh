@@ -104,6 +104,12 @@ if [[ $(_checkCommandExists "rustup") == 0 ]]; then
   echo
 fi
 
+if [[ $(_checkCommandExists "zinit") == 0 ]]; then
+  echo ":: Updating zinit"
+  zinit self-update
+  echo
+fi
+
 # Reload Waybar
 pkill -RTMIN+1 waybar
 
