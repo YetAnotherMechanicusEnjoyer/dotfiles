@@ -1,7 +1,7 @@
-TOKEN_FILE="$HOME/dotfiles/.tokens"
+TOKEN_FILE="$DOTFILES_PATH/.tokens"
 
 if [[ ! -f "$TOKEN_FILE" ]]; then
-  echo "Error: File $TOKEN_FILE not found." >>"$HOME/.yame/errors.log"
+  echo "Error: File $TOKEN_FILE not found." >>"$DOTFILES_PATH/errors.log"
   return 1 2>/dev/null
 fi
 
