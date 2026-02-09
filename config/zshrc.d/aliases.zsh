@@ -1,12 +1,15 @@
 alias gc="git clone"
-alias gcp="sh $DOTFILES_PATH/push_that.sh"
+alias gcp="sh $DOTFILES_PATH/scripts/push_that.sh"
 alias gp="git pull"
 
 alias http="python3 -m http.server"
 
-alias cds="sh $DOTFILES_PATH/coding-style.sh . . && cat coding-style-reports.log && rm -f coding-style-reports.log"
+alias cds="sh $DOTFILES_PATH/scripts/coding-style.sh . . && cat coding-style-reports.log && rm -f coding-style-reports.log"
 
 alias zshrc="$EDITOR ~/.zshrc"
+
+alias n="$EDITOR"
+alias sn="sudo -e"
 
 alias h="history | tail -20 | bat --color=always"
 
