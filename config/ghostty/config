@@ -7,6 +7,8 @@ window-padding-y = 5
 
 keybind = shift+ctrl+?=reload_config
 
+background-opacity = 0.8
+
 # This is the configuration file for Ghostty.
 #
 # This template file has been automatically created at the following
