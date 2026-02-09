@@ -1,0 +1,9 @@
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
+bindkey '^[w' kill-region
+bindkey "^[[3~" delete-char
+bindkey "^[[3;5~" kill-word
+bindkey '^H' backward-kill-word 
+bindkey '^Z' undo
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
