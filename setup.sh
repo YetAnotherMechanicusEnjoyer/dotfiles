@@ -1,6 +1,7 @@
 sudo pacman -Syu --needed gum
 mkdir -p ~/.yame/ &>/dev/null
 cp -r ./* ~/.yame/
+cp ./.tokens ~/.yame/.tokens &>/dev/null
 
 echo -e "\n\e[1m\e[96mDo you want to install packages ?\e[0m"
 gum confirm && sh ~/.yame/scripts/setup/packages.sh
