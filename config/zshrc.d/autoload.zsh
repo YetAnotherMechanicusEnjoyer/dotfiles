@@ -1,1 +1,0 @@
-autoload -Uz compinit && compinit
