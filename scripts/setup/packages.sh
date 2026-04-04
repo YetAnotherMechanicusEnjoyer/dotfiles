@@ -22,7 +22,14 @@ sudo pacman -S \
   docker-compose \
   mariadb \
   openssh \
+  luarocks \
+  npm \
+  nodejs \
+  os-prober \
+  firefox \
   ghostty
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 sudo systemctl start sshd
 sudo systemctl enable sshd
