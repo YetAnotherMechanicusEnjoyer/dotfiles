@@ -18,6 +18,9 @@ gum confirm && sh ~/.yame/scripts/setup/repo.sh
 echo -e "\n\e[1m\e[96mDo you want to install Lxtharia's minegrub theme ?\e[0m"
 gum confirm && sh ~/.yame/scripts/setup/grub.sh
 
+echo -e "\n\e[1m\e[96mDo you want to install Davi-S's minesddm ?\e[0m"
+gum confirm && sh ~/.yame/scripts/setup/sddm.sh
+
 echo -e "\n\e[1m\e[96mDo you want to install other dotfiles ?\e[0m"
 action=$(gum choose "ML4W" "end-4" "no")
 
