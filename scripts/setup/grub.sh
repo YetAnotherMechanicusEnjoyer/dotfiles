@@ -2,7 +2,9 @@
 
 set -e
 
-git clone https://github.com/Lxtharia/double-minegrub-menu.git "$HOME"/.yame/grub
+if [ ! -d "$HOME/.yame/grub" ]; then
+  git clone https://github.com/Lxtharia/double-minegrub-menu.git "$HOME"/.yame/grub
+fi
 cd ~/.yame/
 INSTALL="./grub/install.sh"
 sudo sh "$INSTALL"
