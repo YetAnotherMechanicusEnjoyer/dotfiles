@@ -7,5 +7,5 @@ if [ ! -d "$HOME/.yame/sddm" ]; then
 fi
 cd ~/.yame/
 sudo cp -r ./sddm/minesddm /usr/share/sddm/themes/
-sudo sed -i '/^\[Theme\]/,/^\[/ s/^Current=.*/minesddm/' /usr/lib/sddm/sddm.conf.d/default.conf
+sudo sed -i '/^\[Theme\]/,/^\[/ s/^Current=.*/Current=minesddm/' /usr/lib/sddm/sddm.conf.d/default.conf
 cd - >/dev/null
