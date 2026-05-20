@@ -35,6 +35,7 @@ sudo systemctl start sshd
 sudo systemctl enable sshd
 sudo systemctl start docker
 sudo systemctl enable docker
+sudo systemctl enable sddm
 
 sudo usermod -a -G docker "$USER"
 

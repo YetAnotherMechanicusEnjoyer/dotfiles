@@ -20,22 +20,14 @@ _checkCommandExists() {
 
 _isInstalled() {
   package="$1"
-  case $install_platform in
-  arch)
-    check="$($aur_helper -Qs --color always "${package}" | grep "local" | grep "${package} ")"
-    ;;
-  fedora)
-    check="$(dnf repoquery --quiet --installed ""${package}*"")"
-    ;;
-  *) ;;
-  esac
+  check="$($aur_helper -Qs --color always "${package}" | grep "local" | grep "${package} ")"
 
   if [ -n "${check}" ]; then
-    echo 0 #'0' means 'true' in Bash
-    return #true
+    echo 0
+    return
   fi
-  echo 1 #'1' means 'false' in Bash
-  return #false
+  echo 1
+  return
 }
 
 # ------------------------------------------------------
@@ -44,7 +36,12 @@ _isInstalled() {
 
 sleep 1
 clear
-figlet -f smslant "Updates"
+if [[ $(_checkCommandExists "figlet") == 0 ]]; then
+  figlet -f smslant "Updates"
+else
+  echo "Updates"
+fi
+
 echo
 if gum confirm "DO YOU WANT TO START THE UPDATE NOW?"; then
   echo
@@ -80,11 +77,8 @@ if [[ $(_checkCommandExists "pacman") == 0 ]]; then
     yay
   fi
 
-# Fedora
-elif [[ $(_checkCommandExists "dnf") == 0 ]]; then
-  sudo dnf upgrade
 else
-  echo ":: ERROR - Platform not supported"
+  echo ":: ERROR - Script is made for Arch Linux only"
   echo "Press [ENTER] to close."
   read
 fi
