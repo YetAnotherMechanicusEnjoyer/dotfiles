@@ -3,6 +3,9 @@ mkdir -p ~/.yame/ &>/dev/null
 cp -r ./* ~/.yame/
 cp ./.tokens ~/.yame/.tokens &>/dev/null
 
+echo -e "\n\e[1m\e[96mDo you want to configure pacman ?\e[0m"
+gum confirm && sh ~/.yame/scripts/pacman.sh
+
 echo -e "\n\e[1m\e[96mDo you want to install packages ?\e[0m"
 gum confirm && sh ~/.yame/scripts/setup/packages.sh
 
