@@ -9,5 +9,10 @@ if [[ ! -f "$CONF_FILE" ]]; then
   exit 1
 fi
 
-sudo sed -i 's/#Color/Color/g' "$CONF_FILE"
-echo "ILoveCandy" | sudo tee -a "$CONF_FILE"
+sudo sed -i 's/^#[[:space:]]*Color/Color/' "$CONF_FILE"
+
+if ! grep -q "^ILoveCandy" "$CONF_FILE"; then
+  sudo sed -i '/^Color/a ILoveCandy' "$CONF_FILE"
+fi
+
+sudo sed -i 's/^#[[:space:]]*ParallelDownloads/ParallelDownloads/' "$CONF_FILE"
