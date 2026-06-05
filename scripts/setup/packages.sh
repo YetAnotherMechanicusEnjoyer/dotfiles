@@ -27,6 +27,8 @@ sudo pacman -S \
   nodejs \
   os-prober \
   firefox \
+  sddm \
+  lua \
   ghostty
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
