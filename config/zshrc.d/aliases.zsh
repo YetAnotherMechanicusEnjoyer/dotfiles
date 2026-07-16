@@ -25,6 +25,8 @@ alias ls='eza -ax --icons=always --hyperlink --color=always'
 alias ll='eza -alx --icons=always --hyperlink --color=always'
 alias tree='eza -aTx -I ".git" --icons=always --hyperlink --color=always'
 
+alias ls='ll'
+
 alias clock='tclock -c Yellow'
 alias timer='tclock timer -P -d'
 alias countdown='tclock countdown -t'
@@ -39,3 +41,7 @@ alias sl='ls'
 alias ta='tmux attach'
 
 alias iusearchbtw="docker build -t arch ~/dotfiles/docker/archlinux/ && docker run --rm -it arch /bin/bash"
+
+alias cm="cmake -S . -B build && cmake --build build --parallel $(nproc)"
+
+alias grep="rg"
