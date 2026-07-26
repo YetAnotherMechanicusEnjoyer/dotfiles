@@ -2,12 +2,14 @@
 
 set -e
 
-if [ ! -d "$HOME/.yame/grub" ]; then
-  git clone https://github.com/Lxtharia/double-minegrub-menu.git "$HOME"/.yame/grub
-fi
-cd ~/.yame/
-INSTALL="./grub/install.sh"
-sudo sh "$INSTALL"
+TMPDIR=$(mktemp -d)
+cd "$TMPDIR"
+
+git clone "https://github.com/Lxtharia/double-minegrub-menu.git" "grub"
+
+sudo sh "./grub/install.sh"
 sudo os-prober
-sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-mkconfig -o "/boot/grub/grub.cfg"
+
 cd - >/dev/null
+rm -rf "$TMPDIR"

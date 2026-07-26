@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
-sleep 1
 clear
 
 DOTFILES="$HOME/.yame"
 
-echo -e "\e[90m:: Updating system & install \e[1;3;94mgum\e[0m"
+echo -e "\e[90m:: Updating pacman packages & installing \e[1;3;94mgum\e[0m"
 echo
 sudo pacman -Syu --needed git gum
 
@@ -66,7 +65,7 @@ action=$(gum choose "ML4W" "end-4" "no")
 
 clear
 if [[ $action == "ML4W" ]]; then
-  sh "$DOTFILES/scripts/setup/ml4w_install.sh"
+  bash <(curl -s https://ml4w.com/os/stable)
 elif [[ $action == "end-4" ]]; then
   bash <(curl -sSf https://ii.clsty.link/get)
 fi
@@ -75,4 +74,6 @@ clear
 echo -e "\n\e[1m\e[94mDo you want to link config files ?\e[0m"
 gum confirm && sh "$DOTFILES/scripts/setup/link.sh"
 
-clear
+echo -e "\e[90m:: Setup completed!\e[0m"
+echo -e "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
+read

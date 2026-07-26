@@ -2,3 +2,4 @@ scripts/discord-autoupdater
 config/lazyvim/lazy-lock.json
 .directory
 .tokens
+*.log

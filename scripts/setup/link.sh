@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-echo -e "\e[1m\e[94mChoose a Neovim config.\e[0m"
 NVIM="lazyvim"
 CONFIG="$HOME/.config"
 DOTFILES="$HOME/.yame"
