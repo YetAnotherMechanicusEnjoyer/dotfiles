@@ -81,7 +81,7 @@ gum confirm && /usr/bin/updatearch
 
 clear
 echo -e "\n\e[1;94mDo you want to reboot your system ?\e[0m"
-gum confim && reboot
+gum confirm && reboot
 
 echo -e "\e[0;90m:: Setup completed!\e[0m"
 echo -e "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
