@@ -13,9 +13,11 @@ bash <(curl -sSf https://raw.githubusercontent.com/YetAnotherMechanicusEnjoyer/d
 > [!NOTE]
 > __OS__: `Arch Linux`
 >
-> __DE__: `Hyprland`
+> __Desktop Environment__: `Hyprland`
 >
-> __Bootloader__: `Grub`
+> __Desktop Manager__: `sddm + Davi-S' MineSDDM Theme`
+>
+> __Bootloader__: `Grub + Lxtharia's Minegrub Theme`
 >
 > __Term__: `eDEX-UI & Ghostty (+ tmux if needed)`
 >
@@ -32,4 +34,4 @@ bash <(curl -sSf https://raw.githubusercontent.com/YetAnotherMechanicusEnjoyer/d
 > __Misc__: `Some usefull shell scripts`
 
 > [!TIP]
-> With the help of [ML4W's dotfiles](https://github.com/mylinuxforwork/dotfiles) & [Lxtharia's Minegrub Theme](https://github.com/Lxtharia/minegrub-theme)
+> With the help of [ML4W's dotfiles](https://github.com/mylinuxforwork/dotfiles) & [end-4's dots-hyprland](https://github.com/end-4/dots-hyprland.git)
