@@ -1,6 +1,6 @@
 # Absolute Rizz dotfiles
 
-on skibidi thoses are my dotfiles
+on skibidi those are my dotfiles
 
 # Installation
 
