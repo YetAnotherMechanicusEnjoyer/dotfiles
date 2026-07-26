@@ -8,15 +8,6 @@ hl.window_rule({
 })
 
 hl.window_rule({
-	name = "miniquad-float",
-	match = {
-		class = "miniquad-application",
-	},
-	float = true,
-	center = true,
-})
-
-hl.window_rule({
 	name = "memeblink",
 	match = {
 		title = "MemeBlink Overlay",
@@ -34,10 +25,11 @@ hl.window_rule({
 })
 
 hl.window_rule({
-	name = "sepsis",
+	name = "flock",
 	match = {
-		class = "sepsis",
+		title = "Flock - Terminal",
 	},
 	float = true,
 	center = true,
+	fullscreen = true,
 })
