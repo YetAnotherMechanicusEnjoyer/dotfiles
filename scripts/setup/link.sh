@@ -1,17 +1,11 @@
-#!/bin/bash
-
-echo -e "\n\e[1m\e[94mDo you want to link config files ?\e[0m"
-gum confirm && echo || exit
+#!/usr/bin/env bash
 
 echo -e "\e[1m\e[94mChoose a Neovim config.\e[0m"
-NVIM=$(gum choose "lazyvim" "old_nvim")
+NVIM="lazyvim"
 CONFIG="$HOME/.config"
 DOTFILES="$HOME/.yame"
 
 rm -rf "$CONFIG/fastfetch" "$CONFIG/ghostty" "$CONFIG/nvim" "$CONFIG/starship.toml" "$CONFIG/zshrc.d"
-
-cp ./.zshrc ~/.yame/
-cp ./.tmux.conf ~/.yame/
 
 printf "\e[1;3;94m"
 ln -svf "$DOTFILES/.zshrc" "$HOME/.zshrc"
@@ -21,5 +15,5 @@ ln -svf "$DOTFILES/config/ghostty/" "$CONFIG/ghostty"
 ln -svf "$DOTFILES/config/$NVIM/" "$CONFIG/nvim"
 ln -svf "$DOTFILES/config/starship.toml" "$CONFIG/starship.toml"
 ln -svf "$DOTFILES/config/zshrc.d/" "$CONFIG/zshrc.d"
-sudo ln -svf "$DOTFILES/scripts/updatearch.sh" "/usr/bin/updatearch"
+sudo ln -svf "$DOTFILES/scripts/updatearch" "/usr/bin/updatearch"
 printf "\e[0m"
