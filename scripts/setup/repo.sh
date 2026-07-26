@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 FORMAT=$(gum choose "HTTPS" "SSH" "ZIP" "Cancel")
 

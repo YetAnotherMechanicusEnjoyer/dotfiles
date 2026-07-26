@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CONF_FILE="/etc/pacman.conf"
 
