@@ -18,18 +18,6 @@ _checkCommandExists() {
   return
 }
 
-_isInstalled() {
-  package="$1"
-  check="$($aur_helper -Qs --color always "${package}" | grep "local" | grep "${package} ")"
-
-  if [ -n "${check}" ]; then
-    echo 0
-    return
-  fi
-  echo 1
-  return
-}
-
 # ------------------------------------------------------
 # Confirm Start
 # ------------------------------------------------------
@@ -43,7 +31,7 @@ else
 fi
 
 echo
-if gum confirm "DO YOU WANT TO START THE UPDATE NOW?"; then
+if gum confirm "Do you want to start the update now?"; then
   echo
   echo ":: Update started..."
 elif [ $? -eq 130 ]; then
@@ -58,25 +46,14 @@ fi
 # Install update
 # -----------------------------------------------------
 
-# Arch
 if [[ $(_checkCommandExists "pacman") == 0 ]]; then
-
-  yay_installed="false"
-  paru_installed="false"
   if [[ $(_checkCommandExists "yay") == 0 ]]; then
-    yay_installed="true"
-  fi
-  if [[ $(_checkCommandExists "paru") == 0 ]]; then
-    paru_installed="true"
-  fi
-  if [[ $yay_installed == "true" ]] && [[ $paru_installed == "false" ]]; then
     yay
-  elif [[ $yay_installed == "false" ]] && [[ $paru_installed == "true" ]]; then
+  elif [[ $(_checkCommandExists "paru") == 0 ]]; then
     paru -Syu --noconfirm
   else
-    yay
+    pacman -Syu --noconfirm
   fi
-
 else
   echo ":: ERROR - Script is made for Arch Linux only"
   echo "Press [ENTER] to close."
@@ -98,9 +75,11 @@ if [[ $(_checkCommandExists "rustup") == 0 ]]; then
   echo
 fi
 
+# Zinit
 if [[ $(_checkCommandExists "zinit") == 0 ]]; then
   echo ":: Updating zinit"
   zinit self-update
+  zinit update
   echo
 fi
 
