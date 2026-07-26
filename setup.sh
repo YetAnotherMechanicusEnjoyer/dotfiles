@@ -1,9 +1,12 @@
 sleep 1
 clear
+
 sudo pacman -Syu --needed gum
-mkdir -p "$HOME/.yame/" &>/dev/null
-cp -r ./* "$HOME/.yame/"
-cp ./.tokens "$HOME/.yame/.tokens" &>/dev/null
+
+if [ ! -d "$HOME/.yame/" ]; then
+  mkdir -p "$HOME/.yame/" &>/dev/null
+  git clone https://github.com/YetAnotherMechanicusEnjoyer/dotfiles.git "$HOME"/.yame/
+fi
 
 clear
 echo -e "\n\e[1m\e[96mDo you want to configure pacman ?\e[0m"
@@ -49,3 +52,5 @@ fi
 
 clear
 sh "$HOME/.yame/link.sh"
+
+clear

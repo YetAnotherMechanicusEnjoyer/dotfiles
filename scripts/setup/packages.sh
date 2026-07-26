@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo pacman -S \
+sudo pacman -S --needed \
   zsh \
   fzf \
   eza \

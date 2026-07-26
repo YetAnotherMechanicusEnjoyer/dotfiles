@@ -2,6 +2,14 @@
 
 on skibidi thoses are my dotfiles
 
+# Installation
+
+simply run the following command:
+
+```bash
+bash <(curl -sSf https://raw.githubusercontent.com/YetAnotherMechanicusEnjoyer/dotfiles/refs/heads/main/setup.sh)
+```
+
 > [!NOTE]
 > __OS__: `Arch Linux`
 >
