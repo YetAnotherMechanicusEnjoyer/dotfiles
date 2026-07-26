@@ -6,6 +6,10 @@ sudo pacman -Syu --needed gum
 if [ ! -d "$HOME/.yame/" ]; then
   mkdir -p "$HOME/.yame/" &>/dev/null
   git clone https://github.com/YetAnotherMechanicusEnjoyer/dotfiles.git "$HOME"/.yame/
+else
+  echo ":: WARN - $HOME/.yame/ already exists"
+  echo "Press [ENTER] to close."
+  read
 fi
 
 clear
