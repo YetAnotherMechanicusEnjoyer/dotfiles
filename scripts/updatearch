@@ -11,11 +11,9 @@
 _checkCommandExists() {
   cmd="$1"
   if ! command -v "$cmd" >/dev/null; then
-    echo 1
-    return
+    return 1
   fi
-  echo 0
-  return
+  return 0
 }
 
 # ------------------------------------------------------
@@ -24,7 +22,7 @@ _checkCommandExists() {
 
 sleep 1
 clear
-if [[ $(_checkCommandExists "figlet") == 0 ]]; then
+if _checkCommandExists "figlet"; then
   figlet -f smslant "Updates"
 else
   echo "Updates"
@@ -46,10 +44,10 @@ fi
 # Install update
 # -----------------------------------------------------
 
-if [[ $(_checkCommandExists "pacman") == 0 ]]; then
-  if [[ $(_checkCommandExists "yay") == 0 ]]; then
+if _checkCommandExists "pacman"; then
+  if _checkCommandExists "yay"; then
     yay
-  elif [[ $(_checkCommandExists "paru") == 0 ]]; then
+  elif _checkCommandExists "paru"; then
     paru -Syu --noconfirm
   else
     pacman -Syu --noconfirm
@@ -58,29 +56,34 @@ else
   echo ":: ERROR - Script is made for Arch Linux only"
   echo "Press [ENTER] to close."
   read
+  exit 1
 fi
 echo
 
 # Flatpak
-if [[ $(_checkCommandExists "flatpak") == 0 ]]; then
+if _checkCommandExists "flatpak"; then
   echo ":: Searching for Flatpak updates..."
   flatpak update
   echo
 fi
 
 # Rustup
-if [[ $(_checkCommandExists "rustup") == 0 ]]; then
+if _checkCommandExists "rustup"; then
   echo ":: Updating rustup"
   rustup update
   echo
 fi
 
 # Zinit
-if [[ $(_checkCommandExists "zinit") == 0 ]]; then
-  echo ":: Updating zinit"
-  zinit self-update
-  zinit update
-  echo
+if _checkCommandExists "zsh"; then
+  SKIP_EXEC_ZSH=1 zsh -i -c '
+    if type zinit >/dev/null 2>&1; then
+      echo ":: Updating zinit"
+      zinit self-update
+      zinit update
+      echo
+    fi
+  '
 fi
 
 # Reload Waybar
