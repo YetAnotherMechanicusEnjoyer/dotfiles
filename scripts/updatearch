@@ -22,21 +22,23 @@ _checkCommandExists() {
 
 sleep 1
 clear
+printf "\e[1;90m"
 if _checkCommandExists "figlet"; then
   figlet -f smslant "Updates"
 else
   echo "Updates"
 fi
+printf "\e[0m"
 
 echo
 if gum confirm "Do you want to start the update now?"; then
   echo
-  echo ":: Update started..."
+  echo -e "\e[1;90m:: Update started...\e[0m"
 elif [ $? -eq 130 ]; then
   exit 130
 else
   echo
-  echo ":: Update canceled."
+  echo -e "\e[1;90m:: Update canceled.\e[0m"
   exit
 fi
 
@@ -53,8 +55,8 @@ if _checkCommandExists "pacman"; then
     pacman -Syu --noconfirm
   fi
 else
-  echo ":: ERROR - Script is made for Arch Linux only"
-  echo "Press [ENTER] to close."
+  echo -e "\e[1;90m:: \e[1;3;91mERROR\e[1;90m - Script is made for Arch Linux only\e[0m"
+  echo -e "\e[1;90m:: Press \e[1;94m[ENTER]\e[1;90m to close.\e[0m"
   read
   exit 1
 fi
@@ -62,14 +64,14 @@ echo
 
 # Flatpak
 if _checkCommandExists "flatpak"; then
-  echo ":: Searching for Flatpak updates..."
+  echo -e "\e[1;90m:: Searching for Flatpak updates..."
   flatpak update
   echo
 fi
 
 # Rustup
 if _checkCommandExists "rustup"; then
-  echo ":: Updating rustup"
+  echo -e "\e[1;90m:: Updating \e[1;3;94mrustup\e[0m"
   rustup update
   echo
 fi
@@ -78,7 +80,7 @@ fi
 if _checkCommandExists "zsh"; then
   SKIP_EXEC_ZSH=1 zsh -i -c '
     if type zinit >/dev/null 2>&1; then
-      echo ":: Updating zinit"
+      echo -e "\e[1;90m:: Updating \e[1;3;94mzinit\e[0m"
       zinit self-update
       zinit update
       echo
@@ -90,5 +92,5 @@ fi
 pkill -RTMIN+1 waybar
 
 # Finishing
-echo ":: Update complete! Press [ENTER] to close."
+echo -e "\e[1;90m:: Update complete! Press \e[1;94m[ENTER]\e[1;90m to close.\e[0m"
 read
