@@ -5,9 +5,8 @@
 # /___/_//_/___/\__/\_,_/_/_/  \_,_/ .__/\_,_/\_,_/\__/\__/___/
 #                                 /_/
 #
-# I (YetAnotherMechanicusEnjoyer) took this script from Stephan Rabbe's ML4W
+# I (YetAnotherMechanicusEnjoyer) took inspiration from Stephan Rabbe's ML4W
 
-# Check if command exists
 _checkCommandExists() {
   cmd="$1"
   if ! command -v "$cmd" >/dev/null; then
@@ -16,13 +15,9 @@ _checkCommandExists() {
   return 0
 }
 
-# ------------------------------------------------------
-# Confirm Start
-# ------------------------------------------------------
-
 sleep 1
 clear
-printf "\e[1;90m"
+printf "\e[0;1;93m"
 if _checkCommandExists "figlet"; then
   figlet -f smslant "Updates"
 else
@@ -33,19 +28,16 @@ printf "\e[0m"
 echo
 if gum confirm "Do you want to start the update now?"; then
   echo
-  echo -e "\e[1;90m:: Update started...\e[0m"
+  echo -e "\e[0;1;90m:: Update \e[0;1;3;93mstarted\e[0;1;90m...\e[0m"
 elif [ $? -eq 130 ]; then
   exit 130
 else
   echo
-  echo -e "\e[1;90m:: Update canceled.\e[0m"
+  echo -e "\e[0;1;90m:: Update \e[0;1;3;91mcanceled\e[0;1;90m.\e[0m"
   exit
 fi
 
-# -----------------------------------------------------
-# Install update
-# -----------------------------------------------------
-
+# Pacman
 if _checkCommandExists "pacman"; then
   if _checkCommandExists "yay"; then
     yay
@@ -55,8 +47,8 @@ if _checkCommandExists "pacman"; then
     pacman -Syu --noconfirm
   fi
 else
-  echo -e "\e[1;90m:: \e[1;3;91mERROR\e[1;90m - Script is made for Arch Linux only\e[0m"
-  echo -e "\e[1;90m:: Press \e[1;94m[ENTER]\e[1;90m to close.\e[0m"
+  echo -e "\e[0;1;90m:: \e[0;1;91mERROR\e[0;1;90m - Script is made for \e[0;1;3;96mArch Linux\e[0;1;90m only\e[0m"
+  printf "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
   read
   exit 1
 fi
@@ -64,14 +56,14 @@ echo
 
 # Flatpak
 if _checkCommandExists "flatpak"; then
-  echo -e "\e[1;90m:: Searching for Flatpak updates..."
+  echo -e "\e[0;1;90m:: Searching for \e[0;1;3;94mFlatpak\e[0;90m updates...\e[0m"
   flatpak update
   echo
 fi
 
 # Rustup
 if _checkCommandExists "rustup"; then
-  echo -e "\e[1;90m:: Updating \e[1;3;94mrustup\e[0m"
+  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94mrustup\e[0m"
   rustup update
   echo
 fi
@@ -80,7 +72,7 @@ fi
 if _checkCommandExists "zsh"; then
   SKIP_EXEC_ZSH=1 zsh -i -c '
     if type zinit >/dev/null 2>&1; then
-      echo -e "\e[1;90m:: Updating \e[1;3;94mzinit\e[0m"
+      echo -e "\e[0;1;90m:: Updating \e[0;1;3;94mzinit\e[0m"
       zinit self-update
       zinit update
       echo
@@ -91,6 +83,6 @@ fi
 # Reload Waybar
 pkill -RTMIN+1 waybar
 
-# Finishing
-echo -e "\e[1;90m:: Update complete! Press \e[1;94m[ENTER]\e[1;90m to close.\e[0m"
+echo -e "\e[0;1;90m:: Update \e[0;1;3;92mcomplete\e[0;90m!\e[0m"
+printf "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
 read
