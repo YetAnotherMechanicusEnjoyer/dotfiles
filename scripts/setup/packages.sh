@@ -29,7 +29,8 @@ sudo pacman -S --needed \
   firefox \
   sddm \
   lua \
-  ghostty
+  ghostty \
+  steam
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
@@ -41,5 +42,5 @@ sudo systemctl enable sddm
 
 sudo usermod -a -G docker "$USER"
 
-sudo chsh -s /usr/bin/zsh "$USER"
+sudo chsh -s "/usr/bin/zsh" "$USER"
 gum log --structured --level warn "Restart to change your default shell" shell "zsh"

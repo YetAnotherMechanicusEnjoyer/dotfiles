@@ -16,3 +16,20 @@ if ! grep -q "^ILoveCandy" "$CONF_FILE"; then
 fi
 
 sudo sed -i 's/^#[[:space:]]*ParallelDownloads/ParallelDownloads/' "$CONF_FILE"
+
+if ! grep -q "^[[:space:]]*\[multilib\]" "$CONF_FILE"; then
+  if grep -q "^[[:space:]]*#[[:space:]]*\[multilib\]" "$CONF_FILE"; then
+    sudo sed -i '/^[[:space:]]*#[[:space:]]*\[multilib\]/{
+      s/^[[:space:]]*#[[:space:]]*//
+      n
+      s/^[[:space:]]*#[[:space:]]*//
+    }' "$CONF_FILE"
+
+  else
+    cat <<EOF | sudo tee -a "$CONF_FILE" >/dev/null
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+EOF
+  fi
+fi
