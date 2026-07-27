@@ -5,7 +5,20 @@ clear
 
 DOTFILES="$HOME/.yame"
 
-echo -e "\e[0;90m:: Updating pacman packages & installing \e[1;3;94mgum\e[0m"
+printf "\e[0;1;93m"
+if command -v "figlet" >/dev/null; then
+  figlet -f smslant "Setup"
+else
+  echo "   ____    __ "
+  echo "  / __/__ / /___ _____ "
+  echo " _\ \/ -_) __/ // / _ \ "
+  echo "/___/\__/\__/\_,_/ .__/ "
+  echo "                /_/ "
+fi
+echo -e "\e[0m"
+
+echo -e "\e[0;90m:: Setup \e[0;1;3;93mstarted\e[0;90m...\e[0m"
+echo -e "\e[0;90m:: Updating \e[1;3;94mpacman\e[0;90m packages & installing \e[1;3;94mgum & git\e[0m"
 echo
 sudo pacman -Syu --needed git gum
 
@@ -23,45 +36,41 @@ if [ ! -d "$DOTFILES/" ]; then
     echo -e "\e[0;90m:: Setup aborted.\e[0m"
     exit 0
   fi
+  printf "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to continue.\e[0m"
+  read
 else
+  echo
   echo -e "\e[0;90m:: \e[1;93mWARN\e[0;90m - \e[1;3;94m$DOTFILES/\e[0;90m already exists\e[0m"
-  echo -e "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
+  printf "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
   read
 fi
 
-echo -e "\n\e[1;94mDo you want to configure pacman ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/pacman.sh"
+clear
+gum confirm "Do you want to configure pacman ?" && sh "$DOTFILES/scripts/setup/pacman.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to install yay ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/yay.sh"
+gum confirm "Do you want to install yay ?" && sh "$DOTFILES/scripts/setup/yay.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to install packages ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/packages.sh"
+gum confirm "Do you want to install packages ?" && sh "$DOTFILES/scripts/setup/packages.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to configure git ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/git.sh"
+gum confirm "Do you want to configure git ?" && sh "$DOTFILES/scripts/setup/git.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to configure tmux ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/tmux.sh"
+gum confirm "Do you want to configure tmux ?" && sh "$DOTFILES/scripts/setup/tmux.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to clone some repos ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/repo.sh"
+gum confirm "Do you want to clone some repos ?" && sh "$DOTFILES/scripts/setup/repo.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to install Lxtharia's minegrub theme ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/grub.sh"
+gum confirm "Do you want to install Lxtharia's minegrub theme ?" && sh "$DOTFILES/scripts/setup/grub.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to install Davi-S's minesddm ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/sddm.sh"
+gum confirm "Do you want to install Davi-S's minesddm ?" && sh "$DOTFILES/scripts/setup/sddm.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to install other dotfiles ?\e[0m"
+echo -e " \e[0;1;34mDo you want to install other dotfiles ?\e[0m\n"
 action=$(gum choose "ML4W" "end-4" "no")
 
 clear
@@ -72,13 +81,11 @@ elif [[ $action == "end-4" ]]; then
 fi
 
 clear
-echo -e "\n\e[1;94mDo you want to link config files ?\e[0m"
-gum confirm && sh "$DOTFILES/scripts/setup/link.sh"
+gum confirm "Do you want to link config files ?" && sh "$DOTFILES/scripts/setup/link.sh"
 
 clear
-echo -e "\n\e[1;94mDo you want to reboot your system ?\e[0m"
-gum confirm && reboot
+gum confirm "Do you want to reboot your system ?" && reboot
 
-echo -e "\e[0;90m:: Setup completed!\e[0m"
-echo -e "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
+echo -e "\e[0;90m:: Setup \e[1;3;92mcompleted\e[0;90m!\e[0m"
+printf "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
 read
