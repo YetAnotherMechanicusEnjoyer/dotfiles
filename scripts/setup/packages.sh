@@ -30,6 +30,7 @@ sudo pacman -S --needed \
   sddm \
   lua \
   ghostty \
+  figlet \
   steam
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
