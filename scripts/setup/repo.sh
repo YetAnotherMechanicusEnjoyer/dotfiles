@@ -1,17 +1,30 @@
 #!/usr/bin/env bash
 
 FORMAT=$(gum choose "HTTPS" "SSH" "ZIP" "Cancel")
+
+if [ "$FORMAT" == "Cancel" ] || [ -z "$FORMAT" ]; then
+  exit 0
+fi
+
 DOTFILES="$HOME/.yame"
 REPODIR="$HOME/.yamerepo"
 
 mkdir -p "$REPODIR"
-if [ "$FORMAT" == "HTTPS" ]; then
-  git clone "https://github.com/YetAnotherMechanicusEnjoyer/template.git" "$REPODIR/template"
-  git clone "https://github.com/YetAnotherMechanicusEnjoyer/discord-autoupdater.git" "$REPODIR/discord-autoupdater"
-elif [ "$FORMAT" == "SSH" ]; then
-  git clone "git@github.com:YetAnotherMechanicusEnjoyer/template.git" "$REPODIR/template"
-  git clone "git@github.com:YetAnotherMechanicusEnjoyer/discord-autoupdater.git" "$REPODIR/discord-autoupdater"
-elif [ "$FORMAT" == "ZIP" ]; then
-  sh "$DOTFILES/scripts/download_zip.sh" "https://github.com/YetAnotherMechanicusEnjoyer/template/archive/refs/heads/main.zip" "$REPODIR/template"
-  sh "$DOTFILES/scripts/download_zip.sh" "https://github.com/YetAnotherMechanicusEnjoyer/discord-autoupdater/archive/refs/heads/main.zip" "$REPODIR/discord-autoupdater"
-fi
+REPOSITORIES=(
+  "YetAnotherMechanicusEnjoyer/template"
+  "YetAnotherMechanicusEnjoyer/zig-template"
+  "YetAnotherMechanicusEnjoyer/discord-autoupdater"
+)
+
+for entry in "${REPOSITORIES[@]}"; do
+  AUTHOR="${entry%%/*}"
+  REPO="${entry##*/}"
+
+  if [ "$FORMAT" == "HTTPS" ]; then
+    git clone "https://github.com/$AUTHOR/$REPO.git" "$REPODIR/$REPO"
+  elif [ "$FORMAT" == "SSH" ]; then
+    git clone "git@github.com:$AUTHOR/$REPO.git" "$REPODIR/$REPO"
+  elif [ "$FORMAT" == "ZIP" ]; then
+    sh "$DOTFILES/scripts/download_zip.sh" "https://github.com/$AUTHOR/$REPO/archive/refs/heads/main.zip" "$REPODIR/$REPO"
+  fi
+done
