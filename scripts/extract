@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+for f in *.7z *.zip *.rar; do [ -e "$f" ] && 7z x "$f" -o"${f%.*}"; done
