@@ -31,7 +31,9 @@ sudo pacman -S --needed \
   lua \
   ghostty \
   figlet \
-  steam
+  steam \
+  7z \
+  yazi
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
