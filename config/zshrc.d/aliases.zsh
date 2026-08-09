@@ -2,7 +2,7 @@ alias gc="git clone"
 alias gcp="sh $DOTFILES_PATH/scripts/push_that.sh"
 alias gp="git pull"
 
-alias http="python3 -m http.server"
+alias http="python -m http.server --bind :: 8000 -d"
 
 alias cds="sh $DOTFILES_PATH/scripts/coding-style.sh . . && cat coding-style-reports.log && rm -f coding-style-reports.log"
 
