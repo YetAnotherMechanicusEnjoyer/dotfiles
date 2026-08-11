@@ -3,6 +3,7 @@
 NVIM="lazyvim"
 CONFIG="$HOME/.config"
 DOTFILES="$HOME/.yame"
+REPODIR="$HOME/.yamerepo"
 
 rm -rf "$CONFIG/fastfetch" "$CONFIG/ghostty" "$CONFIG/nvim" "$CONFIG/starship.toml" "$CONFIG/zshrc.d" "$CONFIG/hypr/custom"
 
@@ -17,4 +18,7 @@ ln -svf "$DOTFILES/config/zshrc.d/" "$CONFIG/zshrc.d"
 ln -svf "$DOTFILES/config/hypr/custom" "$CONFIG/hypr/custom"
 sudo ln -svf "$DOTFILES/scripts/extract" "/usr/bin/extract"
 sudo ln -svf "$DOTFILES/scripts/updatearch" "/usr/bin/updatearch"
+
+[[ -f "$REPODIR/wayra/zig-out/bin/herma" ]] && sudo ln -svf "$REPODIR/wayra/zig-out/bin/herma" "/usr/bin/herma"
+[[ -f "$REPODIR/wayra/zig-out/bin/wayra" ]] && sudo ln -svf "$REPODIR/wayra/zig-out/bin/wayra" "/usr/bin/wayra"
 printf "\e[0m"

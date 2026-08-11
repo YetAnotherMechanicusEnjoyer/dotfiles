@@ -33,6 +33,7 @@ sudo pacman -S --needed \
   figlet \
   steam \
   7z \
+  zig \
   yazi
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh

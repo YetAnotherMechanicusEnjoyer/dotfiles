@@ -45,3 +45,5 @@ alias iusearchbtw="docker build -t arch ~/dotfiles/docker/archlinux/ && docker r
 alias cm="cmake -S . -B build && cmake --build build --parallel $(nproc)"
 
 alias grep="rg"
+
+alias zb="zig build"
