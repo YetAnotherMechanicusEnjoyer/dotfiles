@@ -32,7 +32,7 @@ alias timer='tclock timer -P -d'
 alias countdown='tclock countdown -t'
 alias chrono='tclock stopwatch'
 
-alias re='make re'
+alias re='make -j $(nproc) re'
 alias fclean='make fclean'
 
 alias please='/usr/bin/sudo'
@@ -46,4 +46,4 @@ alias cm="cmake -S . -B build && cmake --build build --parallel $(nproc)"
 
 alias grep="rg"
 
-alias zb="zig build"
+alias zb="zig build -j$(nproc)"
