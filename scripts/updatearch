@@ -87,6 +87,29 @@ if _checkCommandExists "pnpm"; then
   echo
 fi
 
+# dotfiles repositories
+REPODIR="$HOME/.yamerepo"
+if [[ -d "$REPODIR" ]]; then
+  REPOSITORIES=(
+    "YetAnotherMechanicusEnjoyer/template"
+    "YetAnotherMechanicusEnjoyer/zig-template"
+    "YetAnotherMechanicusEnjoyer/discord-autoupdater"
+    "YetAnotherMechanicusEnjoyer/herma"
+    "YetAnotherMechanicusEnjoyer/wayra"
+  )
+
+  for entry in "${REPOSITORIES[@]}"; do
+    REPO="${entry##*/}"
+
+    if [[ -d "$REPODIR/$REPO" ]]; then
+      echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m$entry\e[0m"
+      [[ -d "$REPODIR/$REPO/.git" ]] && git pull
+      [[ -f "$REPODIR/$REPO/build.zig" ]] && zig build
+      echo
+    fi
+  done
+fi
+
 # Reload Waybar
 pkill -RTMIN+1 waybar
 
