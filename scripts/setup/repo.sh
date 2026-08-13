@@ -18,6 +18,7 @@ REPOSITORIES=(
   "YetAnotherMechanicusEnjoyer/discord-autoupdater"
   "YetAnotherMechanicusEnjoyer/herma"
   "YetAnotherMechanicusEnjoyer/wayra"
+  "YetAnotherMechanicusEnjoyer/vimcord"
 )
 
 for entry in "${REPOSITORIES[@]}"; do

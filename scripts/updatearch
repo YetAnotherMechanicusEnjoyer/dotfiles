@@ -96,6 +96,7 @@ if [[ -d "$REPODIR" ]]; then
     "YetAnotherMechanicusEnjoyer/discord-autoupdater"
     "YetAnotherMechanicusEnjoyer/herma"
     "YetAnotherMechanicusEnjoyer/wayra"
+    "YetAnotherMechanicusEnjoyer/vimcord"
   )
 
   for entry in "${REPOSITORIES[@]}"; do
@@ -103,10 +104,13 @@ if [[ -d "$REPODIR" ]]; then
 
     if [[ -d "$REPODIR/$REPO" ]]; then
       echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m$entry\e[0m"
-      cd "$REPODIR/$REPO" >&/dev/null || echo -e "\e[90m:: \e[1;91mERROR\e[0;90m - Cannot cd to \e[1;3;94m$REPODIR/$REPO\e[0;90m\e[0m"
+      cd "$REPODIR/$REPO" >&/dev/null || echo -e "\e[90m:: \e[1;91mERROR\e[0;90m - Cannot cd to \e[1;3;94m$REPODIR/$REPO\e[0;90m\e[0m" && continue
 
       [[ -d "$REPODIR/$REPO/.git" ]] && git pull
       [[ -f "$REPODIR/$REPO/build.zig" && "$REPO" != *"template"* ]] && zig build
+      [[ -f "$REPODIR/$REPO/Cargo.toml" && "$REPO" != *"template"* ]] && cargo build --release
+      [[ -f "$REPODIR/$REPO/Makefile" && "$REPO" != *"template"* ]] && make
+      [[ -f "$REPODIR/$REPO/CMakeLists.txt" && "$REPO" != *"template"* ]] && cmake -S . -B build && cmake --build build --parallel "$(nproc)"
 
       cd - >&/dev/null || echo -e "\e[90m:: \e[1;91mERROR\e[0;90m - Cannot cd back\e[0m"
       echo
