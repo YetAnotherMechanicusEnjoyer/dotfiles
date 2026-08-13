@@ -31,7 +31,7 @@ for entry in "${REPOSITORIES[@]}"; do
     elif [ "$FORMAT" == "SSH" ]; then
       git clone "git@github.com:$AUTHOR/$REPO.git" "$REPODIR/$REPO"
     elif [ "$FORMAT" == "ZIP" ]; then
-      sh "$DOTFILES/scripts/download_zip.sh" "https://github.com/$AUTHOR/$REPO/archive/refs/heads/main.zip" "$REPODIR/$REPO"
+      sh "$DOTFILES/scripts/download_zip" "https://github.com/$AUTHOR/$REPO/archive/refs/heads/main.zip" "$REPODIR/$REPO"
     fi
 
     if cd "$REPODIR/$REPO" >&/dev/null; then
