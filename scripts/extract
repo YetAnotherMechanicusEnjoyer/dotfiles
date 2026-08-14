@@ -41,7 +41,7 @@ _error() {
 _help() {
   if [ "$DISABLE_COLORS" = true ]; then
     echo -e ":: Usage:"
-    echo -e "   extract [OPTIONS] [ARCHIVE_DIR] [EXTRACT_DIR]"
+    echo -e "   extract [OPTIONS] [ARCHIVE_PATH] [EXTRACT_PATH]"
     echo ""
     echo -e ":: Options:"
     echo -e "   -j, --jobs <n>               Set maximum parallel extraction jobs (default: 5)"
@@ -51,11 +51,11 @@ _help() {
     echo -e "   -nc, --no-color              Disable ANSI colors"
     echo ""
     echo -e ":: Arguments:"
-    echo -e "   ARCHIVE_DIR Directory containing archives to extract (default: current directory)"
-    echo -e "   EXTRACT_DIR Destination directory for extracted files (default: current directory)"
+    echo -e "   ARCHIVE_PATH Directory containing archives to extract (default: current directory)"
+    echo -e "   EXTRACT_PATH Destination directory for extracted files (default: current directory)"
   else
     echo -e "\e[0;90m:: \e[1;94mUsage\e[0;90m:\e[0m"
-    echo -e "   \e[0;1;92mextract\e[0m [OPTIONS] [ARCHIVE_DIR] [EXTRACT_DIR]\e[0m"
+    echo -e "   \e[0;1;92mextract\e[0m [OPTIONS] [ARCHIVE_PATH] [EXTRACT_PATH]\e[0m"
     echo ""
     echo -e "\e[0;90m:: \e[1;94mOptions\e[0;90m:\e[0m"
     echo -e "   \e[0;1m-j, --jobs <n>\e[0m           \tSet maximum parallel extraction jobs \e[0;90m(default: 5)\e[0m"
@@ -65,8 +65,8 @@ _help() {
     echo -e "   \e[0;1m-nc, --no-color\e[0m          \tDisable ANSI colors\e[0m"
     echo ""
     echo -e "\e[0;90m:: \e[0;1;94mArguments\e[0;90m:\e[0m"
-    echo -e "   \e[0;1mARCHIVE_DIR\e[0m \tDirectory containing archives to extract \e[0;90m(default: current directory)\e[0m"
-    echo -e "   \e[0;1mEXTRACT_DIR\e[0m \tDestination directory for extracted files \e[0;90m(default: current directory)\e[0m"
+    echo -e "   \e[0;1mARCHIVE_PATH\e[0m \tDirectory containing archives to extract \e[0;90m(default: current directory)\e[0m"
+    echo -e "   \e[0;1mEXTRACT_PATH\e[0m \tDestination directory for extracted files \e[0;90m(default: current directory)\e[0m"
   fi
 }
 
@@ -153,7 +153,7 @@ _extract() {
 
   *.gz)
     if command -v gunzip >/dev/null 2>&1; then
-      gunzip -k $GZIP_FLAG "$file" 2>/dev/null && mv -f "${file%.*}" "$EXTRACT_DIR/" 2>/dev/null
+      gunzip -k $GZIP_FLAG "$file" 2>/dev/null && mv -f "${file%.*}" "$EXTRACT_PATH/" 2>/dev/null
     else
       _fallback "gunzip" "$file" "$target_path"
     fi
@@ -167,6 +167,22 @@ _extract() {
     _warn "Cannot extract ${C_PATH}$filename"
     ;;
   esac
+}
+
+_extract_dir() {
+  local dir="$1"
+  local path="$2"
+  local max_jobs="$3"
+
+  for file in "$dir"/*; do
+    [ -f "$file" ] || continue
+
+    _extract "$file" "$path" &
+
+    [[ $(jobs -r -p | wc -l) -ge $max_jobs ]] && wait -n 2>/dev/null
+  done
+
+  wait
 }
 
 MAX_JOBS=5
@@ -218,12 +234,8 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}"
 
-ARCHIVE_DIR="${1:-$PWD}"
-EXTRACT_DIR="${2:-$PWD}"
-
-[ ! -d "$ARCHIVE_DIR" ] && _error "${C_PATH}$ARCHIVE_DIR${C_DIM} doesn't exist" && exit 1
-
-mkdir -p "$EXTRACT_DIR"
+ARCHIVE_PATH="${1:-$PWD}"
+EXTRACT_PATH="${2:-$PWD}"
 
 if [ "$OVERWRITE_MODE" = "overwrite" ]; then
   TAR_FLAG="--overwrite"
@@ -241,15 +253,17 @@ fi
 
 shopt -s nullglob
 
-for file in "$ARCHIVE_DIR"/*; do
-  [ -f "$file" ] || continue
+if [[ -d "$ARCHIVE_PATH" ]]; then
+  mkdir -p "$EXTRACT_PATH"
 
-  _extract "$file" "$EXTRACT_DIR" &
+  _extract_dir "$ARCHIVE_PATH" "$EXTRACT_PATH" "$MAX_JOBS"
+elif [[ -f "$ARCHIVE_PATH" ]]; then
+  mkdir -p "$EXTRACT_PATH"
 
-  [[ $(jobs -r -p | wc -l) -ge $MAX_JOBS ]] && wait -n 2>/dev/null
-done
-
-wait
+  _extract "$ARCHIVE_PATH" "$EXTRACT_PATH"
+else
+  _error "${C_PATH}$ARCHIVE_PATH${C_DIM} doesn't exist" && exit 1
+fi
 
 shopt -u nullglob
 
