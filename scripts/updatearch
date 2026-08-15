@@ -62,6 +62,8 @@ _compile() {
   [[ -f "$dir/Cargo.toml" ]] && _buildCargo "$dir"
   [[ -f "$dir/Makefile" ]] && _buildMakefile "$dir"
   [[ -f "$dir/CMakeLists.txt" ]] && _buildCMake "$dir" "$dir/build"
+
+  echo
 }
 
 sleep 1
@@ -160,10 +162,9 @@ if [[ -d "$REPODIR" ]]; then
       if [[ "$repo" != *"template"* ]]; then
         _compile "$REPODIR/$repo"
       else
-        echo -e "   \e[0;90mNo need to compile template repositories\e[0m"
+        echo -e "   \e[0;90mNo need to compile template repositories\e[0m\n"
       fi
     fi
-    echo
   done
 fi
 
