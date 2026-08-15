@@ -2,8 +2,6 @@
 
 NVIM="lazyvim"
 CONFIG="$HOME/.config"
-DOTFILES="$HOME/.yame"
-REPODIR="$HOME/.yamerepo"
 
 rm -rf "$CONFIG/fastfetch" "$CONFIG/ghostty" "$CONFIG/nvim" "$CONFIG/starship.toml" "$CONFIG/zshrc.d" "$CONFIG/hypr/custom"
 

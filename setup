@@ -3,7 +3,8 @@
 sleep 1
 clear
 
-DOTFILES="$HOME/.yame"
+export DOTFILES="$HOME/.yame"
+export REPODIR="$HOME/.yamerepo"
 
 printf "\e[0;1;93m"
 if command -v "figlet" >/dev/null; then
