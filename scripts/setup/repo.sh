@@ -4,7 +4,7 @@ set -e
 
 _buildZig() {
   echo -e "\e[0;1;90m   \e[0;1;3;93mzig\e[0;90m build --build-file \e[0;3;94m$1/build.zig\e[0;90m -j\"\$(nproc)\"\e[0m"
-  zig build --build-file "$1/build.zig" -j"$(nproc)"
+  zig build --build-file "$1/build.zig" -j"$(nproc)" -Doptimize=ReleaseFast
 }
 
 _buildCargo() {
