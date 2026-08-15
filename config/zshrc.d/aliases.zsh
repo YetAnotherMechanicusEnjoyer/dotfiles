@@ -23,6 +23,7 @@ alias c='clear'
 alias l='eza -x --icons=always --hyperlink --color=always'
 alias ls='eza -ax --icons=always --hyperlink --color=always'
 alias ll='eza -alx --icons=always --hyperlink --color=always'
+alias llt='eza -alx --icons=always --hyperlink --color=always --total-size'
 alias tree='eza -aTx -I ".git" --icons=always --hyperlink --color=always'
 
 alias ls='ll'
