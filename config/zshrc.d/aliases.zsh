@@ -1,10 +1,10 @@
 alias gc="git clone"
-alias gcp="sh $DOTFILES_PATH/scripts/push_that.sh"
+alias gcp="sh $DOTFILES/scripts/push_that.sh"
 alias gp="git pull"
 
-alias http="python -m http.server --bind :: 8000 -d"
+alias http="wayra --bind :: 8000 -d $HOME/.http"
 
-alias cds="sh $DOTFILES_PATH/scripts/coding-style.sh . . && cat coding-style-reports.log && rm -f coding-style-reports.log"
+alias cds="sh $DOTFILES/scripts/coding-style.sh . . && cat coding-style-reports.log && rm -f coding-style-reports.log"
 
 alias zshrc="$EDITOR ~/.zshrc"
 
