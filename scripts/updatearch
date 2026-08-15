@@ -139,7 +139,7 @@ if [[ -d "$REPODIR" ]]; then
             [[ -f "build.zig" ]] && zig build --build-file "$REPODIR/$REPO/build.zig" -j"$(nproc)"
             [[ -f "Cargo.toml" ]] && cargo build -m "$REPODIR/$REPO/Cargo.toml" -j "$(nproc)" --release
             [[ -f "Makefile" ]] && make -C "$REPODIR/$REPO" -j "$(nproc)"
-            [[ -f "CMakeLists.txt" ]] && cmake -S "$REPODIR/$REPO" -B build && cmake --build build --parallel "$(nproc)"
+            [[ -f "CMakeLists.txt" ]] && cmake -S "$REPODIR/$REPO" -B "$REPODIR/$REPO/build" && cmake --build "$REPODIR/$REPO/build" --parallel "$(nproc)"
           else
             echo -e "   \e[0;90mNo need to compile template repositories\e[0m"
           fi
