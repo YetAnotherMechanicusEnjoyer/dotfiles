@@ -87,6 +87,25 @@ if _checkCommandExists "pnpm"; then
   echo
 fi
 
+# dotfiles
+DOTFILES="$HOME/.yame"
+DOTFILES_REPO="YetAnotherMechanicusEnjoyer/dotfiles"
+if [[ -d "$DOTFILES/.git" ]]; then
+  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m$DOTFILES_REPO\e[0m"
+
+  PRE_PULL_SHA=$(git -C "$DOTFILES" rev-parse HEAD)
+  git -C "$DOTFILES" pull >&/dev/null
+  POST_PULL_SHA=$(git -C "$DOTFILES" rev-parse HEAD)
+
+  if [[ "$PRE_PULL_SHA" != "$POST_PULL_SHA" ]]; then
+    git -C "$DOTFILES" log --oneline --graph --color "${PRE_PULL_SHA}".."${POST_PULL_SHA}" | sed 's/^/   /'
+  else
+    echo -e "   \e[0;90mAlready up to date.\e[0m"
+  fi
+
+  echo
+fi
+
 # dotfiles repositories
 REPODIR="$HOME/.yamerepo"
 if [[ -d "$REPODIR" ]]; then
