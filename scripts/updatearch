@@ -105,17 +105,27 @@ if [[ -d "$REPODIR" ]]; then
     if [[ -d "$REPODIR/$REPO" ]]; then
       echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m$entry\e[0m"
 
-      if cd "$REPODIR/$REPO" >&/dev/null; then
-        [[ -d "$REPODIR/$REPO/.git" ]] && git pull
-        [[ -f "$REPODIR/$REPO/build.zig" && "$REPO" != *"template"* ]] && zig build -j"$(nproc)"
-        [[ -f "$REPODIR/$REPO/Cargo.toml" && "$REPO" != *"template"* ]] && cargo build -j "$(nproc)" --release
-        [[ -f "$REPODIR/$REPO/Makefile" && "$REPO" != *"template"* ]] && make -j "$(nproc)"
-        [[ -f "$REPODIR/$REPO/CMakeLists.txt" && "$REPO" != *"template"* ]] && cmake -S . -B build && cmake --build build --parallel "$(nproc)"
-      else
-        echo -e "\e[90m:: \e[1;91mERROR\e[0;90m - Cannot cd to \e[1;3;94m$REPODIR/$REPO\e[0;90m\e[0m" && continue
+      if [[ -d "$REPODIR/$REPO/.git" ]]; then
+        PRE_PULL_SHA=$(git -C "$REPODIR/$REPO" rev-parse HEAD)
+        git -C "$REPODIR/$REPO" pull >&/dev/null
+        POST_PULL_SHA=$(git -C "$REPODIR/$REPO" rev-parse HEAD)
+
+        if [[ "$PRE_PULL_SHA" != "$POST_PULL_SHA" ]]; then
+          if [[ "$REPO" != *"template"* ]]; then
+            echo -e "\e[0;1;90m:: Compiling \e[0;1;3;94m$entry\e[0;90m...\e[0m"
+
+            [[ -f "build.zig" ]] && zig build --build-file "$REPODIR/$REPO/build.zig" -j"$(nproc)"
+            [[ -f "Cargo.toml" ]] && cargo build -m "$REPODIR/$REPO/Cargo.toml" -j "$(nproc)" --release
+            [[ -f "Makefile" ]] && make -C "$REPODIR/$REPO" -j "$(nproc)"
+            [[ -f "CMakeLists.txt" ]] && cmake -S "$REPODIR/$REPO" -B build && cmake --build build --parallel "$(nproc)"
+          else
+            echo -e "   \e[0;90mNo need to compile template repositories\e[0m"
+          fi
+        else
+          echo -e "   \e[0;90mAlready up to date.\e[0m"
+        fi
       fi
 
-      cd - >&/dev/null || echo -e "\e[90m:: \e[1;91mERROR\e[0;90m - Cannot cd back\e[0m"
       echo
     fi
   done
