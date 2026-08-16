@@ -32,7 +32,7 @@ sudo pacman -S --needed \
   ghostty \
   figlet \
   steam \
-  7z \
+  7zip \
   zig \
   yazi
 
