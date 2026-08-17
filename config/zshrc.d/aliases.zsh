@@ -2,7 +2,7 @@ alias gc="git clone"
 alias gcp="sh $DOTFILES/scripts/push_that.sh"
 alias gp="git pull"
 
-alias http="wayra --bind :: 8000 -d $HOME/.http"
+alias http="/usr/bin/sudo wayra --bind :: 80 -d $HOME/.http"
 
 alias cds="sh $DOTFILES/scripts/coding-style.sh . . && cat coding-style-reports.log && rm -f coding-style-reports.log"
 
