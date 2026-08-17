@@ -46,46 +46,58 @@ else
   read
 fi
 
+sleep 1
 clear
 gum confirm "Do you want to configure pacman ?" && sh "$DOTFILES/scripts/setup/pacman.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to install yay ?" && sh "$DOTFILES/scripts/setup/yay.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to install packages ?" && sh "$DOTFILES/scripts/setup/packages.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to configure git ?" && sh "$DOTFILES/scripts/setup/git.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to configure tmux ?" && sh "$DOTFILES/scripts/setup/tmux.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to clone some repos ?" && sh "$DOTFILES/scripts/setup/repo.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to install Lxtharia's minegrub theme ?" && sh "$DOTFILES/scripts/setup/grub.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to install Davi-S's minesddm ?" && sh "$DOTFILES/scripts/setup/sddm.sh"
 
+sleep 1
 clear
 echo -e " \e[0;1;34mDo you want to install other dotfiles ?\e[0m\n"
 action=$(gum choose "ML4W" "end-4" "i3-wm" "no")
 
+sleep 1
 clear
 if [[ $action == "ML4W" ]]; then
   bash <(curl -sSf https://ml4w.com/os/stable)
 elif [[ $action == "end-4" ]]; then
   bash <(curl -sSf https://ii.clsty.link/get)
 elif [[ $action == "i3-wm" ]]; then
-  sudo pacman -S i3-wm dmenu clipmenu i3status
+  sh "$DOTFILES/scripts/setup/i3.sh"
 fi
 
+sleep 1
 clear
 gum confirm "Do you want to link config files ?" && sh "$DOTFILES/scripts/setup/link.sh"
 
+sleep 1
 clear
 gum confirm "Do you want to reboot your system ?" && reboot
 
