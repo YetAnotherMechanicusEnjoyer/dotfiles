@@ -34,7 +34,8 @@ sudo pacman -S --needed \
   steam \
   7zip \
   zig \
-  yazi
+  yazi \
+  less
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
