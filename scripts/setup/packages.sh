@@ -38,6 +38,8 @@ sudo pacman -S --needed \
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
+export PATH="$PATH:$HOME/.cargo/bin"
+
 sudo systemctl start sshd
 sudo systemctl enable sshd
 sudo systemctl start docker
