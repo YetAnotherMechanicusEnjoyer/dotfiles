@@ -80,7 +80,7 @@ if [[ $action == "ML4W" ]]; then
 elif [[ $action == "end-4" ]]; then
   bash <(curl -sSf https://ii.clsty.link/get)
 elif [[ $action == "i3-wm" ]]; then
-  sudo pacman -S i3-wm dmenu
+  sudo pacman -S i3-wm dmenu clipmenu i3status
 fi
 
 clear
