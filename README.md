@@ -7,7 +7,7 @@ on skibidi those are my dotfiles
 simply run the following command:
 
 ```bash
-bash <(curl -sSfL https://dotfiles.frezzydy.com)
+bash <(curl -sSfL dotfiles.frezzydy.com)
 ```
 
 > [!NOTE]
