@@ -30,34 +30,55 @@ _compile() {
   [[ -f "$dir/CMakeLists.txt" ]] && _buildCMake "$dir" "$dir/build"
 }
 
-FORMAT=$(gum choose "HTTPS" "SSH" "ZIP" "Cancel")
+REPODIR="${REPODIR:-${HOME}/.yamerepo}"
+mkdir -p "$REPODIR"
 
-if [ "$FORMAT" == "Cancel" ] || [ -z "$FORMAT" ]; then
-  exit 0
+if [ "$#" -gt 0 ]; then
+  REPOSITORIES=("$@")
+else
+  DEFAULT_REPOS="YetAnotherMechanicusEnjoyer/template HTTPS
+YetAnotherMechanicusEnjoyer/zig-template HTTPS
+YetAnotherMechanicusEnjoyer/discord-autoupdater HTTPS
+YetAnotherMechanicusEnjoyer/herma HTTPS
+YetAnotherMechanicusEnjoyer/wayra HTTPS
+YetAnotherMechanicusEnjoyer/vimcord HTTPS"
+
+  USER_INPUT=$(gum write \
+    --header "List of repositories to clone. Format: Author/Repo [HTTPS|SSH|ZIP] (Defaults to HTTPS). One per line:" \
+    --value "$DEFAULT_REPOS" \
+    --width 100 --height 12)
+
+  if [ -z "$USER_INPUT" ]; then
+    echo -e "\e[0;91mOperation cancelled or no list provided.\e[0m"
+    exit 0
+  fi
+
+  mapfile -t REPOSITORIES <<<"$USER_INPUT"
 fi
 
-mkdir -p "$REPODIR"
-REPOSITORIES=(
-  "YetAnotherMechanicusEnjoyer/template"
-  "YetAnotherMechanicusEnjoyer/zig-template"
-  "YetAnotherMechanicusEnjoyer/discord-autoupdater"
-  "YetAnotherMechanicusEnjoyer/herma"
-  "YetAnotherMechanicusEnjoyer/wayra"
-  "YetAnotherMechanicusEnjoyer/vimcord"
-)
+echo ""
 
 for entry in "${REPOSITORIES[@]}"; do
-  AUTHOR="${entry%%/*}"
-  REPO="${entry##*/}"
+  [[ -z "$entry" ]] && continue
+
+  read -r REPO_PATH CLONE_FORMAT <<<"$entry"
+
+  AUTHOR="${REPO_PATH%%/*}"
+  REPO="${REPO_PATH##*/}"
+
+  CLONE_FORMAT=$(echo "$CLONE_FORMAT" | tr '[:lower:]' '[:upper:]')
+  if [[ ! "$CLONE_FORMAT" =~ ^(HTTPS|SSH|ZIP)$ ]]; then
+    CLONE_FORMAT="HTTPS"
+  fi
 
   if [[ ! -d "$REPODIR/$REPO" ]]; then
-    echo -e "\e[0;1;90m:: Cloning \e[0;1;3;94m$entry\e[0m"
+    echo -e "\e[0;1;90m:: Cloning \e[0;1;3;94m$REPO_PATH\e[0;1;90m via \e[0;1;3;95m$CLONE_FORMAT\e[0m"
 
-    if [ "$FORMAT" == "HTTPS" ]; then
+    if [ "$CLONE_FORMAT" == "HTTPS" ]; then
       git clone "https://github.com/$AUTHOR/$REPO.git" "$REPODIR/$REPO"
-    elif [ "$FORMAT" == "SSH" ]; then
+    elif [ "$CLONE_FORMAT" == "SSH" ]; then
       git clone "git@github.com:$AUTHOR/$REPO.git" "$REPODIR/$REPO"
-    elif [ "$FORMAT" == "ZIP" ]; then
+    elif [ "$CLONE_FORMAT" == "ZIP" ]; then
       sh "$DOTFILES/scripts/download_zip" "https://github.com/$AUTHOR/$REPO/archive/refs/heads/main.zip" "$REPODIR/$REPO"
     fi
 
