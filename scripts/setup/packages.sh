@@ -37,6 +37,10 @@ sudo pacman -S --needed \
   yazi \
   less
 
+if command -v "yay" >/dev/null; then
+  yay -S --needed wayra-git
+fi
+
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 export PATH="$PATH:$HOME/.cargo/bin"

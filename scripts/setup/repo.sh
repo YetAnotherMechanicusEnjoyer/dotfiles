@@ -40,7 +40,6 @@ else
 YetAnotherMechanicusEnjoyer/zig-template HTTPS
 YetAnotherMechanicusEnjoyer/discord-autoupdater HTTPS
 YetAnotherMechanicusEnjoyer/herma HTTPS
-YetAnotherMechanicusEnjoyer/wayra HTTPS
 YetAnotherMechanicusEnjoyer/vimcord HTTPS"
 
   USER_INPUT=$(gum write \

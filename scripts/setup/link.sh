@@ -21,6 +21,5 @@ sudo ln -svf "$DOTFILES/scripts/updatearch" "/usr/bin/updatearch"
 
 [[ -d "$CONFIG/hypr" ]] && ln -svf "$DOTFILES/config/hypr/custom" "$CONFIG/hypr/custom"
 [[ -f "$REPODIR/wayra/zig-out/bin/herma" ]] && sudo ln -svf "$REPODIR/wayra/zig-out/bin/herma" "/usr/bin/herma"
-[[ -f "$REPODIR/wayra/zig-out/bin/wayra" ]] && sudo ln -svf "$REPODIR/wayra/zig-out/bin/wayra" "/usr/bin/wayra"
 [[ -f "$REPODIR/vimcord/target/release/vimcord" ]] && sudo ln -svf "$REPODIR/vimcord/target/release/vimcord" "/usr/bin/vimcord"
 printf "\e[0m"
