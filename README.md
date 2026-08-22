@@ -34,4 +34,4 @@ bash <(curl -sSfL dotfiles.frezzydy.com)
 > __Misc__: `Some usefull shell scripts (e.g.: full system & dotfiles update)`
 
 > [!TIP]
-> With the help of [ML4W's dotfiles](https://github.com/mylinuxforwork/dotfiles) & [end-4's dots-hyprland](https://github.com/end-4/dots-hyprland.git) for Hyprland base config.
+> With the help of [ML4W's dotfiles](https://github.com/mylinuxforwork/dotfiles), [end-4's dots-hyprland](https://github.com/end-4/dots-hyprland.git) & [pctrade's end4-pC](https://github.com/pctrade/end4-pC) for Hyprland & Quickshell base config.
