@@ -26,3 +26,5 @@ hl.bind(
 	),
 	{ description = "Terminal" }
 )
+
+hl.bind("SUPER + escape", hl.dsp.global("quickshell:settingsToggle"), { description = "Toggle settings" })

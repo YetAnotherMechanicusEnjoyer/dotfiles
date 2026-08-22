@@ -88,6 +88,7 @@ clear
 if [[ $action == "ML4W" ]]; then
   bash <(curl -sSf https://ml4w.com/os/stable)
 elif [[ $action == "end-4" ]]; then
+  sh "$DOTFILES/scripts/end4-pC.sh"
   bash <(curl -sSf https://ii.clsty.link/get)
 elif [[ $action == "i3-wm" ]]; then
   sh "$DOTFILES/scripts/setup/i3.sh"
