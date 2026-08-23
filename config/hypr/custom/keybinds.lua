@@ -19,12 +19,4 @@ hl.bind(
 	{ description = "Toggle Keybooad Layout" }
 )
 
-hl.bind(
-	"SUPER+Return",
-	hl.dsp.exec_cmd(
-		'~/.config/hypr/hyprland/scripts/launch_first_available.sh "${TERMINAL}" "ghostty" "kitty -1" "foot" "alacritty" "konsole" '
-	),
-	{ description = "Terminal" }
-)
-
 hl.bind("SUPER + escape", hl.dsp.global("quickshell:settingsToggle"), { description = "Toggle settings" })
