@@ -45,6 +45,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 export PATH="$PATH:$HOME/.cargo/bin"
 
+if command -v "cargo" >/dev/null; then
+  cargo install CuTE-tui
+fi
+
 sudo systemctl start sshd
 sudo systemctl enable sshd
 sudo systemctl start docker
