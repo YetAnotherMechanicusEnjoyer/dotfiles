@@ -4,5 +4,5 @@ if [[ -z "$SKIP_EXEC_ZSH" ]]; then
     exec Hyprland > ~/.cache/hyprland.log 2>&1
   fi
 
-fastfetch
+ff
 fi

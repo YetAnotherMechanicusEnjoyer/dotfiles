@@ -48,6 +48,7 @@ export PATH="$PATH:$HOME/.cargo/bin"
 
 if command -v "cargo" >/dev/null; then
   cargo install CuTE-tui
+  cargo install mew-cli
 fi
 
 sudo systemctl start sshd

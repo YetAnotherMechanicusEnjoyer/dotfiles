@@ -15,7 +15,7 @@ alias h="history | tail -20 | bat --color=always"
 
 alias nf="fastfetch"
 alias pf="fastfetch"
-alias ff="fastfetch"
+alias ff="mew --full"
 
 alias clear="clear && ff"
 alias c='clear'
@@ -27,11 +27,6 @@ alias llt='eza -alx --icons=always --hyperlink --color=always --total-size'
 alias tree='eza -aTx -I ".git" --icons=always --hyperlink --color=always'
 
 alias ls='ll'
-
-alias clock='tclock -c Yellow'
-alias timer='tclock timer -P -d'
-alias countdown='tclock countdown -t'
-alias chrono='tclock stopwatch'
 
 alias re='make -j $(nproc) re'
 alias fclean='make fclean'
