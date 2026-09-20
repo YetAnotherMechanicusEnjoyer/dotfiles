@@ -17,7 +17,7 @@ ln -svf "$DOTFILES/config/starship.toml" "$CONFIG/starship.toml"
 ln -svf "$DOTFILES/config/zshrc.d/" "$CONFIG/zshrc.d"
 sudo ln -svf "$DOTFILES/scripts/download_zip" "/usr/bin/download_zip"
 sudo ln -svf "$DOTFILES/scripts/extract" "/usr/bin/extract"
-sudo ln -svf "$DOTFILES/scripts/updatearch" "/usr/bin/updatearch"
+sudo ln -svf "$DOTFILES/scripts/yameup" "/usr/bin/yameup"
 
 [[ -d "$CONFIG/hypr" ]] && ln -svf "$DOTFILES/config/hypr/custom" "$CONFIG/hypr/custom"
 [[ -f "$REPODIR/wayra/zig-out/bin/herma" ]] && sudo ln -svf "$REPODIR/wayra/zig-out/bin/herma" "/usr/bin/herma"
