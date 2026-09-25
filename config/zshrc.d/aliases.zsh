@@ -40,8 +40,4 @@ alias iusearchbtw="docker build -t arch ~/dotfiles/docker/archlinux/ && docker r
 
 alias cm="cmake -S . -B build && cmake --build build --parallel $(nproc)"
 
-alias grep="rg"
-
-alias zb="zig build -j$(nproc)"
-
 alias cargo-update='cargo install --list | awk '\''match($0, /^((\S+)\s+v\S+(\s+\(([^[:space:]?#)]+)(\?(branch|tag|rev)=([^[:space:]#)]+))?(#[^[:space:])]+)?\))?):/, m) { if (!m[4]) { cmd="cargo install " m[2] } else if (!m[8]) { print "\033[33mWarning: Skipping " m[1] "\033[0m" > "/dev/stderr"; cmd="" } else if (m[6]) { cmd="cargo install --git " m[4] " --" m[6] " " m[7] " " m[2] } else { cmd="cargo install --git " m[4] " " m[2] }; if (cmd) system(cmd) }'\'''

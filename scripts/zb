@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+USE_TUI=false
+ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -t | --tui)
+    USE_TUI=true
+    shift
+    ;;
+  --)
+    shift
+    ARGS+=("$@")
+    break
+    ;;
+  *)
+    ARGS+=("$1")
+    shift
+    ;;
+  esac
+done
+
+if [ ! -f "build.zig" ]; then
+  echo -e "\e[0;1;90m:: \e[0;1;91mERROR\e[0;1;90m - Cannot find \e[0;1;3;93mbuild.zig\e[0;1;90m\e[0m" >&2
+  exit 1
+fi
+
+BIN_NAME=$(grep -oE '\.name\s*=\s*"[^"\s]+"' build.zig | head -n 1 | cut -d'"' -f2)
+
+if [ -z "$BIN_NAME" ]; then
+  echo -e "\e[0;1;90m:: \e[0;1;91mERROR\e[0;1;90m - Cannot find binary name in \e[0;1;3;93mbuild.zig\e[0;1;90m\e[0m" >&2
+  exit 1
+fi
+
+zig build -j"$(nproc)" || exit 1
+
+EXE_PATH="./zig-out/bin/$BIN_NAME"
+
+if [ "$USE_TUI" = true ]; then
+  MEM_LOG="/dev/shm/zb_$(id -u).log"
+
+  "$EXE_PATH" "${ARGS[@]}" >"$MEM_LOG" 2>&1
+  STATUS=$?
+
+  [ -f "$MEM_LOG" ] && cat "$MEM_LOG" && rm -f "$MEM_LOG"
+else
+  "$EXE_PATH" "${ARGS[@]}"
+  STATUS=$?
+fi
+
+exit $STATUS
