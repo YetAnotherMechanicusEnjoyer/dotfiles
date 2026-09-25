@@ -7,14 +7,14 @@ fi
 
 source "${ZINIT_HOME}/zinit.zsh"
 
-autoload -Uz compinit && compinit
-
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 
 zinit snippet OMZP::sudo
+
+autoload -Uz compinit && compinit
 
 zinit cdreplay -q
 
