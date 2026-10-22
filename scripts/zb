@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 USE_TUI=false
+BUILD_ONLY=false
 ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -13,6 +14,10 @@ while [[ $# -gt 0 ]]; do
     shift
     ARGS+=("$@")
     break
+    ;;
+  -b | --build)
+    BUILD_ONLY=true
+    shift
     ;;
   *)
     ARGS+=("$1")
@@ -33,7 +38,11 @@ if [ -z "$BIN_NAME" ]; then
   exit 1
 fi
 
-zig build -j"$(nproc)" || exit 1
+BUILD_CMD="zig build -j$(nproc) --summary all"
+
+$BUILD_CMD || exit 1
+
+[ $BUILD_ONLY = true ] && exit 0
 
 EXE_PATH="./zig-out/bin/$BIN_NAME"
 
