@@ -1,0 +1,79 @@
+[recording]
+buffer_duration = 1800
+clip_duration = 900
+fps = 30
+follow_mouse_display = false
+window_capture = true
+resolution = "1920x1080"
+encoder = "auto"
+crf = 23
+color_depth = "8"
+backend = "auto"
+capture_audio = true
+desktop_volume = 1.0
+microphone_volume = 1.0
+capture_microphone = true
+microphone_source = "default_input"
+microphone_mono = false
+wf_microphone_strategy = "prompt"
+apply_watermark = false
+audio_sink = "default"
+gsr_args = ""
+gsr_source = "auto"
+gsr_audio_source = "default_output"
+gsr_replay_storage = "disk"
+container = "mp4"
+audio_tracks = [
+    "app-inverse:WEBRTC VoiceEngine|app-inverse:Chromium|app-inverse:spotify|app-inverse:firefox",
+    "default_input",
+    "app:WEBRTC VoiceEngine|app:Chromium",
+    "app:firefox",
+    "app:spotify",
+]
+audio_tracks_mix_first = false
+
+[recording.audio_track_volumes]
+
+[hotkeys]
+clip = "KEY_F16"
+screenshot = "KEY_F14"
+clip_presets = []
+disable_while_focused = []
+
+[output]
+directory = "/home/archmagos/Videos/Vice"
+image_directory = "/home/archmagos/Pictures/Vice"
+filename_format = "vice_%Y%m%d_%H%M%S.mp4"
+tag_clips_with_game = true
+auto_playlist_by_game = true
+clip_name_template = ""
+
+[sharing]
+enabled = true
+port = 8765
+cloudflare_tunnel = true
+embed_color = "#85d7ae"
+share_discord_file = false
+
+[discord]
+enabled = true
+persist_while_running = true
+game_icons = true
+custom_games = []
+
+[updates]
+check_on_start = true
+
+[notifications]
+sound_volume = 1
+
+[ui]
+hardware_video_decode = false
+
+[overlay]
+keys = false
+keys_position = "bottom-left"
+keys_x = 32
+keys_y = 32
+keys_scale = 1.0
+keys_in_clips = false
