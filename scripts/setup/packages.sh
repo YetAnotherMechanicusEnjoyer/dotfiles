@@ -36,7 +36,8 @@ sudo pacman -S --needed \
   zig \
   yazi \
   less \
-  typescript
+  typescript \
+  fd
 
 if command -v "yay" >/dev/null; then
   yay -S --needed wayra-git
