@@ -71,7 +71,7 @@ return {
                 local explorers = Snacks.picker.get({ source = "explorer" })
 
                 if #explorers > 0 then
-                    explorers[1].input.win:focus()
+                    explorers[1].list.win:focus()
                 else
                     Snacks.picker.explorer({
                         cwd = LazyVim and LazyVim.root() or vim.fn.getcwd(),
@@ -79,7 +79,7 @@ return {
                     })
                 end
             end,
-            desc = "Explorer Snacks (Focus/Open)",
+            desc = "Explorer Snacks (Root Dir)",
         },
     },
 }
