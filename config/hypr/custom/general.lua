@@ -1,3 +1,5 @@
+require("custom/custom")
+
 hl.config({
 	input = {
 		kb_layout = "fr, us",

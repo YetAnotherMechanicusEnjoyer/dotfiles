@@ -3,3 +3,4 @@ config/lazyvim/lazy-lock.json
 .directory
 .tokens
 *.log
+config/hypr/custom/custom.lua
