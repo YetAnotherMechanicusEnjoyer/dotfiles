@@ -20,3 +20,6 @@ hl.bind(
 )
 
 hl.bind("SUPER + escape", hl.dsp.global("quickshell:settingsToggle"), { description = "Toggle settings" })
+
+hl.bind("code:199", hl.dsp.global("discord:discord-toggle-mute"))
+hl.bind("code:200", hl.dsp.global("discord:discord-toggle-deafen"))
