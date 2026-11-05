@@ -1,9 +1,10 @@
 [recording]
-buffer_duration = 1800
+buffer_duration = 900
 clip_duration = 900
 fps = 30
+display = "DP-1"
 follow_mouse_display = false
-window_capture = true
+window_capture = false
 resolution = "1920x1080"
 encoder = "auto"
 crf = 23
@@ -21,7 +22,7 @@ audio_sink = "default"
 gsr_args = ""
 gsr_source = "auto"
 gsr_audio_source = "default_output"
-gsr_replay_storage = "disk"
+gsr_replay_storage = "auto"
 container = "mp4"
 audio_tracks = [
     "app-inverse:WEBRTC VoiceEngine|app-inverse:Chromium|app-inverse:spotify|app-inverse:firefox",
@@ -68,7 +69,7 @@ check_on_start = true
 sound_volume = 1
 
 [ui]
-hardware_video_decode = false
+hardware_video_decode = true
 
 [overlay]
 keys = false
