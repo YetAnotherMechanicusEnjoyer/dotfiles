@@ -2,6 +2,7 @@
 
 readonly BUILD_DIR="${BUILD_DIR:-build}"
 readonly COMPILER="${COMPILER:-nasm}"
+readonly LD="${LD:-ld}"
 readonly CC="${CC:-gcc}"
 
 DISABLE_COLORS=false
@@ -85,15 +86,29 @@ _info() {
   echo "${C_DIM}:: $1${C_RESET}"
 }
 
-if ! command -v "$COMPILER" >/dev/null; then
-  _error "Cannot find ${C_PATH}$COMPILER"
-  exit 1
-fi
+_checkCommandExists() {
+  cmd="$1"
+  if ! command -v "$cmd" >/dev/null; then
+    return 1
+  fi
+  return 0
+}
 
-if ! command -v "$CC" >/dev/null; then
-  _error "Cannot find ${C_PATH}$CC"
-  exit 1
-fi
+_link() {
+  _info "Linking object files."
+
+  if [ -z "$ENTRYPOINT" ]; then
+    ! _checkCommandExists "$LD" && _error "Cannot find linker: ${C_PATH}$LD" && exit 1
+    "$LD" "${OBJS[@]}" -o "$BUILD_DIR/$OUTPUT"
+  else
+    ! _checkCommandExists "$CC" && _error "Cannot find C compiler: ${C_PATH}$CC" && exit 1
+    "$CC" "${OBJS[@]}" "$ENTRYPOINT" -o "$BUILD_DIR/$OUTPUT"
+  fi
+
+  _info "${C_INFO}Build complete!"
+}
+
+! _checkCommandExists "$COMPILER" && _error "Cannot find compiler: ${C_PATH}$COMPILER" && exit 1
 
 [ "$BUILD" == true ] && {
   [ ! -d "$BUILD_DIR/o" ] && mkdir -p "$BUILD_DIR/o"
@@ -107,9 +122,7 @@ fi
     OBJS+=("$obj_file")
   done
 
-  _info "Linking object files."
-  "$CC" "${OBJS[@]}" $ENTRYPOINT -o "$BUILD_DIR/$OUTPUT"
-  _info "${C_INFO}Build complete!"
+  _link
 }
 
 [ "$RUN" == true ] && {
@@ -129,3 +142,4 @@ fi
 }
 
 [ "$CLEAR" == true ] && [ -d "$BUILD_DIR" ] && rm -r "$BUILD_DIR"
+exit 0
