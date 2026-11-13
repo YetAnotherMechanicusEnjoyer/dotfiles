@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+COMPILER="${COMPILER:-nasm}"
+CC="${CC:-gcc}"
+ENTRYPOINT=
+OUTPUT="a.out"
+declare -a ARGS=()
+declare -a FILES=()
+declare -a OBJS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -e)
+    shift
+    ENTRYPOINT="$1"
+    shift
+    ;;
+  -o | --output)
+    shift
+    OUTPUT="$1"
+    shift
+    ;;
+  --)
+    shift
+    FILES+=("$@")
+    break
+    ;;
+  *)
+    ARGS+=("$1")
+    shift
+    ;;
+  esac
+done
+
+if ! command -v "$COMPILER" >/dev/null; then
+  echo -e "\e[0;1;90m:: \e[0;1;91mERROR\e[0;1;90m - Cannot find \e[0;1;3;93m$COMPILER\e[0;1;90m\e[0m" >&2
+  exit 1
+fi
+
+for file in "${FILES[@]}"; do
+  "$COMPILER" "${ARGS[@]}" "$file"
+  OBJS+=("${file%.*}.o")
+done
+
+"$CC" "${OBJS[@]}" "$ENTRYPOINT" -o "$OUTPUT"
+
+if [[ -f "$OUTPUT" ]]; then
+  "./$OUTPUT"
+  STATUS=$?
+
+  rm "${OBJS[@]}" "$OUTPUT"
+
+  exit $STATUS
+fi
