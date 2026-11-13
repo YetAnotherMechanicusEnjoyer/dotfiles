@@ -23,7 +23,7 @@ gsr_args = ""
 gsr_source = "auto"
 gsr_audio_source = "default_output"
 gsr_replay_storage = "auto"
-container = "mp4"
+container = "mkv"
 audio_tracks = [
     "app-inverse:WEBRTC VoiceEngine|app-inverse:Chromium|app-inverse:spotify|app-inverse:firefox",
     "default_input",
@@ -34,6 +34,11 @@ audio_tracks = [
 audio_tracks_mix_first = false
 
 [recording.audio_track_volumes]
+"app-inverse:WEBRTC VoiceEngine|app-inverse:Chromium|app-inverse:spotify|app-inverse:firefox" = 1.0
+default_input = 1.0
+"app:WEBRTC VoiceEngine|app:Chromium" = 1.0
+"app:firefox" = 1.0
+"app:spotify" = 1.0
 
 [hotkeys]
 clip = "KEY_F16"
@@ -47,7 +52,7 @@ image_directory = "/home/archmagos/Pictures/Vice"
 filename_format = "vice_%Y%m%d_%H%M%S.mp4"
 tag_clips_with_game = true
 auto_playlist_by_game = true
-clip_name_template = ""
+clip_name_template = "$game_$date_$time"
 
 [sharing]
 enabled = true
@@ -66,10 +71,12 @@ custom_games = []
 check_on_start = true
 
 [notifications]
-sound_volume = 1
+sound_volume = 0.4
+sound_pack = "classic"
 
 [ui]
-hardware_video_decode = true
+close_to_tray = false
+hardware_video_decode = false
 
 [overlay]
 keys = false
@@ -78,3 +85,12 @@ keys_x = 32
 keys_y = 32
 keys_scale = 1.0
 keys_in_clips = false
+keys_hidden = []
+keys_layout = "qwerty"
+
+[voice]
+enabled = false
+custom_phrase = ""
+cooldown = 4.0
+min_confidence = 0.5
+model_path = ""
