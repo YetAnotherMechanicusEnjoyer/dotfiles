@@ -8,7 +8,7 @@ return {
                 vim.api.nvim_set_hl(
                     0,
                     "SnacksPickerGitStatusModified",
-                    { fg = "#03D9FE", bold = true }
+                    { fg = "#A700FF", bold = true }
                 )
                 vim.api.nvim_set_hl(
                     0,
