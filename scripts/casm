@@ -94,20 +94,6 @@ _checkCommandExists() {
   return 0
 }
 
-_link() {
-  _info "Linking object files."
-
-  if [ -z "$ENTRYPOINT" ]; then
-    ! _checkCommandExists "$LD" && _error "Cannot find linker: ${C_PATH}$LD" && exit 1
-    "$LD" "${OBJS[@]}" -o "$BUILD_DIR/$OUTPUT"
-  else
-    ! _checkCommandExists "$CC" && _error "Cannot find C compiler: ${C_PATH}$CC" && exit 1
-    "$CC" "${OBJS[@]}" "$ENTRYPOINT" -o "$BUILD_DIR/$OUTPUT"
-  fi
-
-  _info "${C_INFO}Build complete!"
-}
-
 ! _checkCommandExists "$COMPILER" && _error "Cannot find compiler: ${C_PATH}$COMPILER" && exit 1
 
 [ "$BUILD" == true ] && {
@@ -122,7 +108,17 @@ _link() {
     OBJS+=("$obj_file")
   done
 
-  _link
+  _info "Linking object files."
+
+  if [ -z "$ENTRYPOINT" ]; then
+    ! _checkCommandExists "$LD" && _error "Cannot find linker: ${C_PATH}$LD" && exit 1
+    "$LD" "${OBJS[@]}" -o "$BUILD_DIR/$OUTPUT"
+  else
+    ! _checkCommandExists "$CC" && _error "Cannot find C compiler: ${C_PATH}$CC" && exit 1
+    "$CC" "${OBJS[@]}" "$ENTRYPOINT" -o "$BUILD_DIR/$OUTPUT"
+  fi
+
+  _info "${C_INFO}Build complete!"
 }
 
 [ "$RUN" == true ] && {
