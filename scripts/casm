@@ -123,12 +123,9 @@ _checkCommandExists() {
 
 [ "$RUN" == true ] && {
   _info "Running ${C_CYAN}$BUILD_DIR/$OUTPUT${C_DIM}..."
-  [ ! -f "$BUILD_DIR/$OUTPUT" ] && {
-    _error "Binary ${C_PATH}$BUILD_DIR/$OUTPUT${C_DIM} not found!"
-    exit 1
-  }
-  echo
+  [ ! -f "$BUILD_DIR/$OUTPUT" ] && _error "Binary ${C_PATH}$BUILD_DIR/$OUTPUT${C_DIM} not found!" && exit 1
 
+  echo
   "./$BUILD_DIR/$OUTPUT"
   STATUS=$?
 
