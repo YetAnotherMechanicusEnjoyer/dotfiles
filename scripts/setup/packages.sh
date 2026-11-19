@@ -37,7 +37,11 @@ sudo pacman -S --needed \
   yazi \
   less \
   typescript \
-  fd
+  fd \
+  noto-fonts-cjk \
+  noto-fonts-emoji
+
+fc-cache -fv
 
 if command -v "yay" >/dev/null; then
   yay -S --needed wayra-git
