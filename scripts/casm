@@ -4,6 +4,7 @@ readonly BUILD_DIR="${BUILD_DIR:-build}"
 readonly COMPILER="${COMPILER:-nasm}"
 readonly LD="${LD:-ld}"
 readonly CC="${CC:-gcc}"
+readonly BUILD_FILE="${BUILD_FILE:-build.casm}"
 
 DISABLE_COLORS=false
 OUTPUT="a.out"
@@ -98,6 +99,10 @@ _checkCommandExists() {
 
 [ "$BUILD" == true ] && {
   [ ! -d "$BUILD_DIR/o" ] && mkdir -p "$BUILD_DIR/o"
+
+  [ -f "$BUILD_FILE" ] && {
+    FILES+=($(cat "$BUILD_FILE"))
+  }
 
   for file in "${FILES[@]}"; do
     obj_file="$BUILD_DIR/o/${file%.*}.o"
