@@ -6,6 +6,7 @@ hl.window_rule({
 	float = true,
 	center = true,
 	size = { 800, 720 },
+	render_unfocused = true,
 })
 
 hl.window_rule({
@@ -15,4 +16,10 @@ hl.window_rule({
 	},
 	fullscreen = true,
 	monitor = "DP-1",
+	render_unfocused = true,
+})
+
+hl.window_rule({
+	match = { class = "com.mitchellh.ghostty" },
+	opacity = "0.85 override 0.85 override",
 })
