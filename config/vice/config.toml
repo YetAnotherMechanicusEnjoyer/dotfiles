@@ -42,8 +42,9 @@ default_input = 1.0
 
 [hotkeys]
 clip = "KEY_F16"
-screenshot = "KEY_F14"
-clip_presets = []
+clip_presets = [
+    { key = "KEY_F15", duration = 300 },
+]
 disable_while_focused = []
 
 [output]
@@ -60,6 +61,7 @@ port = 8765
 cloudflare_tunnel = true
 embed_color = "#85d7ae"
 share_discord_file = false
+discord_max_mb = 500
 
 [discord]
 enabled = true
