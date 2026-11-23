@@ -15,3 +15,9 @@ vim.g.rustaceanvim = {
         },
     },
 }
+
+vim.filetype.add({
+    extension = {
+        casm = "toml",
+    },
+})
