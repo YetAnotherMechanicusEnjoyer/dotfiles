@@ -15,7 +15,7 @@ alias h="history | tail -20 | bat --color=always"
 
 alias nf="fastfetch"
 alias pf="fastfetch"
-alias ff="mew --full"
+alias ff="mew"
 
 alias clear="clear && ff"
 alias c='clear'
