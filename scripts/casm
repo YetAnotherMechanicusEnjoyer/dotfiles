@@ -11,6 +11,7 @@ OUTPUT="a.out"
 ENTRYPOINT=
 BUILD=false
 CLEAR=false
+DEBUG=false
 RUN=false
 
 declare -a ARGS=()
@@ -37,8 +38,12 @@ while [[ $# -gt 0 ]]; do
     BUILD=true
     shift
     ;;
-  clear)
+  clear | clean)
     CLEAR=true
+    shift
+    ;;
+  debug)
+    DEBUG=true
     shift
     ;;
   run)
@@ -108,7 +113,11 @@ _checkCommandExists() {
     obj_file="$BUILD_DIR/o/${file%.*}.o"
     _info "Building ${C_CYAN}$obj_file${C_DIM}..."
 
-    "$COMPILER" "${ARGS[@]}" "$file" -o "$obj_file"
+    if [ "$DEBUG" = true ]; then
+      "$COMPILER" "${ARGS[@]}" "$file" -o "$obj_file" -g -F dwarf
+    else
+      "$COMPILER" "${ARGS[@]}" "$file" -o "$obj_file"
+    fi
 
     OBJS+=("$obj_file")
   done
@@ -131,7 +140,11 @@ _checkCommandExists() {
   [ ! -f "$BUILD_DIR/$OUTPUT" ] && _error "Binary ${C_PATH}$BUILD_DIR/$OUTPUT${C_DIM} not found!" && exit 1
 
   echo
-  "./$BUILD_DIR/$OUTPUT"
+  if [ "$DEBUG" = true ]; then
+    strace "./$BUILD_DIR/$OUTPUT"
+  else
+    "./$BUILD_DIR/$OUTPUT"
+  fi
   STATUS=$?
 
   [ "$CLEAR" == true ] && rm -r "$BUILD_DIR"
