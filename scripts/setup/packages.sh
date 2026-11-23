@@ -44,7 +44,7 @@ sudo pacman -S --needed \
 fc-cache -fv
 
 if command -v "yay" >/dev/null; then
-  yay -S --needed wayra-git
+  yay -S --needed wayra-git casm-cli
 fi
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
