@@ -1,156 +1,1093 @@
 #!/usr/bin/env bash
 
-readonly BUILD_DIR="${BUILD_DIR:-build}"
-readonly COMPILER="${COMPILER:-nasm}"
-readonly LD="${LD:-ld}"
-readonly CC="${CC:-gcc}"
-readonly BUILD_FILE="${BUILD_FILE:-build.casm}"
+# casm - a small build system for NASM projects.
+# https://github.com/YetAnotherMechanicusEnjoyer/dotfiles
 
-DISABLE_COLORS=false
-OUTPUT="a.out"
-ENTRYPOINT=
-BUILD=false
-CLEAR=false
+if ((BASH_VERSINFO[0] < 4 || (\
+  BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 4))); then
+  printf 'casm requires Bash 4.4 or newer.\n' >&2
+  exit 1
+fi
+
+set -euo pipefail
+
+BUILD_FILE=${BUILD_FILE:-build.casm}
+BUILD_DIR=${BUILD_DIR:-build}
+PROJECT_NAME=a.out
+OUTPUT=${OUTPUT:-}
+FORMAT=elf64
 DEBUG=false
-RUN=false
+NASM=${NASM:-nasm}
+LD=${LD:-ld}
+CC=${CC:-gcc}
+LINK_DRIVER=ld
 
-declare -a ARGS=()
-declare -a FILES=()
-declare -a OBJS=()
+COMMAND=build
+VERBOSE=false
+QUIET=false
+DISABLE_COLOR=false
+FORCE=false
+INIT_FORCE=false
+USE_VALGRIND=false
+USE_STRACE=false
+CLI_FILE=false
+CLI_BUILD_DIR=
+CLI_OUTPUT=
+CLI_DEBUG=
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-  -o | --output)
-    shift
-    OUTPUT="$1"
-    shift
+declare -a ASM_SOURCES=()
+declare -a SOURCE_DIRS=()
+declare -a SOURCE_EXCLUDES=()
+declare -a INCLUDE_DIRS=()
+declare -a LINK_INPUTS=()
+declare -a NASM_FLAGS=()
+declare -a LINK_FLAGS=()
+declare -a CLI_SOURCES=()
+declare -a PROGRAM_ARGS=()
+PROGRAM_ARGS_SET=false
+declare -a OBJECTS=()
+
+declare -A CONFIG_SEEN=()
+
+C_RESET=
+C_BOLD=
+C_DIM=
+C_RED=
+C_YELLOW=
+C_GREEN=
+C_CYAN=
+C_BLUE=
+C_MAGENTA=
+ANIMATE=false
+PROGRESS_OPEN=false
+STEP_INDEX=0
+TOTAL_STEPS=0
+
+usage() {
+  cat <<'HELP'
+casm - a build tool for NASM projects
+
+USAGE:
+  casm init [--force] [--file PATH]
+  casm [build] [options] [source.asm ...]
+  casm run [options] [-- program-arguments ...]
+  casm clean
+
+COMMANDS:
+  init                  Create a build.casm for the current project.
+  build                 Assemble and link (default).
+  run                   Build, then run the executable.
+  clean, clear          Remove the build directory.
+  help                  Show this help.
+
+OPTIONS:
+  -f, --file PATH       Build file (default: build.casm).
+  -o, --output PATH     Override the executable path.
+      --build-dir PATH  Override the build directory.
+      --debug           Include DWARF debug information.
+      --no-debug        Disable debug information.
+      --force           Rebuild everything (or overwrite on init).
+      --valgrind        Run under Valgrind (run only).
+      --strace          Run under strace (run only).
+  -v, --verbose         Show commands and additional build information.
+  -q, --quiet           Hide casm logs; program output is preserved.
+      --no-color        Disable colored output.
+  -h, --help            Show this help.
+
+SOURCE CONFIGURATION (build.casm):
+  [sources]
+  root = "src"                 Discover every .asm file recursively.
+  root = "libasm"              Additional source directory.
+  exclude = "src/tests/**"     Exclude a subtree or matching files.
+  include = "include"          NASM include directory.
+  asm = "generated/start.asm"  Optional individual source file.
+
+EXAMPLES:
+  casm init
+  casm build --debug
+  casm run -- arg1 "hello world"
+  casm run --quiet | grep SUCCESS
+  casm clean
+HELP
+}
+
+init_terminal() {
+  if [[ "$DISABLE_COLOR" != true && -z "${NO_COLOR:-}" && -t 2 &&
+    "${TERM:-dumb}" != dumb ]]; then
+    C_RESET=$'\033[0m'
+    C_BOLD=$'\033[1m'
+    C_DIM=$'\033[2m'
+    C_RED=$'\033[1;31m'
+    C_YELLOW=$'\033[1;33m'
+    C_GREEN=$'\033[1;32m'
+    C_CYAN=$'\033[1;36m'
+    C_BLUE=$'\033[1;34m'
+    C_MAGENTA=$'\033[1;35m'
+  fi
+
+  if [[ "$QUIET" != true && -t 2 && "${TERM:-dumb}" != dumb &&
+    -z "${CI:-}" ]]; then
+    ANIMATE=true
+  fi
+}
+
+ui() {
+  [[ "$QUIET" == true ]] && return 0
+  printf '%s\n' "$*" >&2
+}
+
+ui_warning() {
+  [[ "$QUIET" == true ]] && return 0
+  printf '%swarning:%s %s\n' "$C_YELLOW" "$C_RESET" "$*" >&2
+}
+
+ui_error() {
+  printf '%serror:%s %s\n' "$C_RED" "$C_RESET" "$*" >&2
+}
+
+die() {
+  ui_error "$*"
+  exit 1
+}
+
+usage_error() {
+  ui_error "$*"
+  printf 'Try `casm help`.\n' >&2
+  exit 2
+}
+
+print_command() {
+  local argument
+
+  printf '%s   $' "$C_DIM" >&2
+  for argument in "$@"; do
+    printf ' %q' "$argument" >&2
+  done
+  printf '%s\n' "$C_RESET" >&2
+}
+
+print_detail() {
+  [[ "$QUIET" == true ]] && return 0
+  printf '%s  %s%s\n' "$C_DIM" "$*" "$C_RESET" >&2
+}
+
+clear_progress_line() {
+  if [[ "$ANIMATE" == true && "$PROGRESS_OPEN" == true ]]; then
+    printf '\r\033[2K' >&2
+    PROGRESS_OPEN=false
+  fi
+}
+
+render_step() {
+  local symbol=$1
+  local symbol_color=$2
+  local label=$3
+  local subject=$4
+  local color=$C_CYAN
+
+  case "$label" in
+  Linking) color=$C_BLUE ;;
+  Cached) color=$C_GREEN ;;
+  Assembling) color=$C_MAGENTA ;;
+  esac
+
+  if [[ "$ANIMATE" == true ]]; then
+    printf '\r\033[2K' >&2
+    PROGRESS_OPEN=true
+  fi
+
+  printf '  %s%s%s [%d/%d] %s%s%s %s%s%s' \
+    "$symbol_color" "$symbol" "$C_RESET" "$STEP_INDEX" \
+    "$TOTAL_STEPS" "$color" "$label" "$C_RESET" \
+    "$C_DIM" "$subject" "$C_RESET" >&2
+
+  if [[ "$ANIMATE" == true ]]; then
+    if [[ "$symbol" == '✓' || "$symbol" == '✗' ]]; then
+      printf '\n' >&2
+      PROGRESS_OPEN=false
+    fi
+  else
+    printf '\n' >&2
+  fi
+}
+
+has_command() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+need_value() {
+  [[ $# -ge 2 && -n "$2" ]] || usage_error "Missing value for $1."
+}
+
+trim() {
+  local value=$1
+
+  value=${value#"${value%%[![:space:]]*}"}
+  value=${value%"${value##*[![:space:]]}"}
+  printf '%s' "$value"
+}
+
+config_error() {
+  die "$BUILD_FILE:$1: $2"
+}
+
+mark_scalar() {
+  local token=$1
+  local line_number=$2
+
+  if [[ -n ${CONFIG_SEEN[$token]+x} ]]; then
+    config_error "$line_number" "duplicate setting '$token'."
+  fi
+  CONFIG_SEEN[$token]=1
+}
+
+decode_value() {
+  local raw=$1
+  local line_number=$2
+  local quote=${raw:0:1}
+  local body=
+  local decoded=
+  local character
+  local next
+  local index=0
+
+  [[ -n "$raw" ]] || config_error "$line_number" 'empty value.'
+
+  if [[ "$quote" == '"' || "$quote" == "'" ]]; then
+    [[ ${raw: -1} == "$quote" ]] ||
+      config_error "$line_number" 'unterminated quote.'
+
+    body=${raw:1:${#raw}-2}
+    while ((index < ${#body})); do
+      character=${body:index:1}
+      if [[ "$character" == \\ ]]; then
+        index=$((index + 1))
+        ((index < ${#body})) ||
+          config_error "$line_number" 'invalid trailing escape.'
+        next=${body:index:1}
+        [[ "$next" == "$quote" || "$next" == \\ ]] ||
+          config_error "$line_number" 'unsupported escape sequence.'
+        decoded+=$next
+      else
+        [[ "$character" != "$quote" ]] ||
+          config_error "$line_number" 'quotes inside values must be escaped.'
+        decoded+=$character
+      fi
+      index=$((index + 1))
+    done
+
+    printf '%s' "$decoded"
+    return 0
+  fi
+
+  case "$raw" in
+  *'"'* | *"'"*)
+    config_error "$line_number" 'quotes must wrap the whole value.'
     ;;
-  -nc | --no-color)
-    DISABLE_COLORS=true
-    shift
+  esac
+
+  printf '%s' "$raw"
+}
+
+parse_value() {
+  local section=$1
+  local key=$2
+  local value=$3
+  local line_number=$4
+  local token="$section.$key"
+
+  [[ -n "$value" ]] || config_error "$line_number" "empty value for '$token'."
+  value=$(decode_value "$value" "$line_number")
+  [[ -n "$value" ]] || config_error "$line_number" "empty value for '$token'."
+
+  case "$token" in
+  project.name)
+    mark_scalar "$token" "$line_number"
+    PROJECT_NAME=$value
     ;;
-  entry)
-    shift
-    ENTRYPOINT="$1"
-    shift
+  project.output)
+    mark_scalar "$token" "$line_number"
+    OUTPUT=$value
     ;;
-  build)
-    BUILD=true
-    shift
+  build.dir)
+    mark_scalar "$token" "$line_number"
+    BUILD_DIR=$value
     ;;
-  clear | clean)
-    CLEAR=true
-    shift
+  build.format)
+    mark_scalar "$token" "$line_number"
+    FORMAT=$value
     ;;
-  debug)
-    DEBUG=true
-    shift
+  build.debug)
+    mark_scalar "$token" "$line_number"
+    [[ "$value" == true || "$value" == false ]] ||
+      config_error "$line_number" "'build.debug' must be true or false."
+    DEBUG=$value
     ;;
-  run)
-    RUN=true
-    shift
+  build.nasm_flag) NASM_FLAGS+=("$value") ;;
+  build.link_flag) LINK_FLAGS+=("$value") ;;
+  tools.nasm)
+    mark_scalar "$token" "$line_number"
+    NASM=$value
     ;;
-  --)
-    shift
-    FILES+=("$@")
-    break
+  tools.ld)
+    mark_scalar "$token" "$line_number"
+    LD=$value
     ;;
-  *)
-    ARGS+=("$1")
+  tools.cc)
+    mark_scalar "$token" "$line_number"
+    CC=$value
+    ;;
+  sources.asm) ASM_SOURCES+=("$value") ;;
+  sources.root) SOURCE_DIRS+=("$value") ;;
+  sources.exclude) SOURCE_EXCLUDES+=("$value") ;;
+  sources.include) INCLUDE_DIRS+=("$value") ;;
+  link.driver)
+    mark_scalar "$token" "$line_number"
+    LINK_DRIVER=$value
+    ;;
+  link.input) LINK_INPUTS+=("$value") ;;
+  *) config_error "$line_number" "unknown setting '$token'." ;;
+  esac
+}
+
+parse_build_file() {
+  local section=
+  local raw
+  local line
+  local key
+  local value
+  local number=0
+
+  [[ -f "$BUILD_FILE" ]] || return 0
+
+  while IFS= read -r raw || [[ -n "$raw" ]]; do
+    number=$((number + 1))
+    line=$(trim "$raw")
+
+    case "$line" in
+    '' | \#* | \;*) continue ;;
+    esac
+
+    if [[ "$line" =~ ^\[([a-z_]+)\]$ ]]; then
+      section=${BASH_REMATCH[1]}
+      case "$section" in
+      project | build | tools | sources | link) ;;
+      *) config_error "$number" "unknown section '[$section]'." ;;
+      esac
+      continue
+    fi
+
+    [[ -n "$section" ]] ||
+      config_error "$number" 'expected a section header first.'
+    [[ "$line" == *=* ]] ||
+      config_error "$number" "expected 'key = value'."
+
+    key=$(trim "${line%%=*}")
+    value=$(trim "${line#*=}")
+    [[ "$key" =~ ^[a-z_]+$ ]] ||
+      config_error "$number" "invalid key '$key'."
+
+    parse_value "$section" "$key" "$value" "$number"
+  done <"$BUILD_FILE"
+}
+
+parse_cli() {
+  case "${1:-}" in
+  init | build | run | clean | clear | help)
+    COMMAND=$1
     shift
     ;;
   esac
-done
 
-_change_color_state() {
-  if [ "$DISABLE_COLORS" = true ]; then
-    C_DIM=""
-    C_INFO=""
-    C_ERROR=""
-    C_CYAN=""
-    C_PATH=""
-    C_RESET=""
-    return
+  while (($#)); do
+    case "$1" in
+    -h | --help)
+      COMMAND=help
+      shift
+      ;;
+    -f | --file)
+      need_value "$1" "${2:-}"
+      BUILD_FILE=$2
+      CLI_FILE=true
+      shift 2
+      ;;
+    -o | --output)
+      need_value "$1" "${2:-}"
+      CLI_OUTPUT=$2
+      shift 2
+      ;;
+    --build-dir)
+      need_value "$1" "${2:-}"
+      CLI_BUILD_DIR=$2
+      shift 2
+      ;;
+    --debug)
+      CLI_DEBUG=true
+      shift
+      ;;
+    --no-debug)
+      CLI_DEBUG=false
+      shift
+      ;;
+    --force)
+      FORCE=true
+      INIT_FORCE=true
+      shift
+      ;;
+    --valgrind)
+      USE_VALGRIND=true
+      shift
+      ;;
+    --strace)
+      USE_STRACE=true
+      shift
+      ;;
+    -v | --verbose)
+      VERBOSE=true
+      shift
+      ;;
+    -q | --quiet)
+      QUIET=true
+      shift
+      ;;
+    --no-color)
+      DISABLE_COLOR=true
+      shift
+      ;;
+    --)
+      shift
+      PROGRAM_ARGS_SET=true
+      PROGRAM_ARGS+=("$@")
+      break
+      ;;
+    -*) usage_error "unknown option '$1'." ;;
+    *)
+      CLI_SOURCES+=("$1")
+      shift
+      ;;
+    esac
+  done
+}
+
+validate_cli_context() {
+  if [[ "$COMMAND" != run && ("$USE_VALGRIND" == true ||
+    "$USE_STRACE" == true || "$PROGRAM_ARGS_SET" == true) ]]; then
+    usage_error '--valgrind, --strace and program arguments are only valid with run.'
   fi
 
-  C_DIM=$'\x1b[0;90m'
-  C_INFO=$'\x1b[0;1;92m'
-  C_ERROR=$'\x1b[0;1;91m'
-  C_CYAN=$'\x1b[0;1;96m'
-  C_PATH=$'\x1b[0;1;3;94m'
-  C_RESET=$'\x1b[0m'
-}
-
-[ -n "${NO_COLOR:-}" ] && DISABLE_COLORS=true
-_change_color_state
-
-_error() {
-  echo -e "${C_DIM}:: ${C_ERROR}ERROR${C_DIM} - $1${C_RESET}" >&2
-}
-
-_info() {
-  echo "${C_DIM}:: $1${C_RESET}"
-}
-
-_checkCommandExists() {
-  cmd="$1"
-  if ! command -v "$cmd" >/dev/null; then
-    return 1
+  if [[ "$USE_VALGRIND" == true && "$USE_STRACE" == true ]]; then
+    usage_error 'choose either --valgrind or --strace, not both.'
   fi
-  return 0
 }
 
-! _checkCommandExists "$COMPILER" && _error "Cannot find compiler: ${C_PATH}$COMPILER" && exit 1
+apply_cli_overrides() {
+  [[ -n "$CLI_BUILD_DIR" ]] && BUILD_DIR=$CLI_BUILD_DIR
+  [[ -n "$CLI_OUTPUT" ]] && OUTPUT=$CLI_OUTPUT
+  [[ -n "$CLI_DEBUG" ]] && DEBUG=$CLI_DEBUG
+  ASM_SOURCES+=("${CLI_SOURCES[@]}")
+}
 
-[ "$BUILD" == true ] && {
-  [ ! -d "$BUILD_DIR/o" ] && mkdir -p "$BUILD_DIR/o"
+source_is_excluded() {
+  local source=$1
+  local pattern
 
-  [ -f "$BUILD_FILE" ] && {
-    FILES+=($(cat "$BUILD_FILE"))
-  }
+  for pattern in "${SOURCE_EXCLUDES[@]}"; do
+    [[ "$source" == $pattern ]] && return 0
+  done
+  return 1
+}
 
-  for file in "${FILES[@]}"; do
-    obj_file="$BUILD_DIR/o/${file%.*}.o"
-    _info "Building ${C_CYAN}$obj_file${C_DIM}..."
+source_is_known() {
+  local source=$1
+  local existing
 
-    if [ "$DEBUG" = true ]; then
-      "$COMPILER" "${ARGS[@]}" "$file" -o "$obj_file" -g -F dwarf
-    else
-      "$COMPILER" "${ARGS[@]}" "$file" -o "$obj_file"
-    fi
+  for existing in "${ASM_SOURCES[@]}"; do
+    [[ "$existing" == "$source" ]] && return 0
+  done
+  return 1
+}
 
-    OBJS+=("$obj_file")
+validate_relative_source() {
+  local source=$1
+
+  [[ "$source" != /* ]] || die "source paths must be relative: '$source'."
+  case "/$source/" in
+  */../*) die "source paths cannot contain '..': '$source'." ;;
+  esac
+}
+
+collect_sources() {
+  local LC_ALL=C
+  local root
+  local source
+  local normalized_build=${BUILD_DIR#./}
+  local -a explicit_sources=("${ASM_SOURCES[@]}")
+
+  ASM_SOURCES=()
+
+  for source in "${explicit_sources[@]}"; do
+    validate_relative_source "$source"
+    source=${source#./}
+    source_is_excluded "$source" && continue
+    source_is_known "$source" || ASM_SOURCES+=("$source")
   done
 
-  _info "Linking object files."
+  normalized_build=${normalized_build%/}
+  shopt -s globstar nullglob
 
-  if [ -z "$ENTRYPOINT" ]; then
-    ! _checkCommandExists "$LD" && _error "Cannot find linker: ${C_PATH}$LD" && exit 1
-    "$LD" "${OBJS[@]}" -o "$BUILD_DIR/$OUTPUT"
-  else
-    ! _checkCommandExists "$CC" && _error "Cannot find C compiler: ${C_PATH}$CC" && exit 1
-    "$CC" "${OBJS[@]}" "$ENTRYPOINT" -o "$BUILD_DIR/$OUTPUT"
-  fi
+  for root in "${SOURCE_DIRS[@]}"; do
+    [[ "$root" != /* ]] || die "source root must be relative: '$root'."
+    case "/$root/" in
+    */../*) die "source root cannot contain '..': '$root'." ;;
+    esac
 
-  _info "${C_INFO}Build complete!"
+    root=${root#./}
+    root=${root%/}
+    [[ -n "$root" ]] || root=.
+    [[ -d "$root" ]] || die "source directory not found: '$root'."
+
+    for source in "$root"/**/*.asm; do
+      source=${source#./}
+      case "$source" in
+      .git/* | .hg/* | .svn/*) continue ;;
+      "$normalized_build"/*) continue ;;
+      esac
+
+      source_is_excluded "$source" && continue
+      source_is_known "$source" || ASM_SOURCES+=("$source")
+    done
+  done
+
+  shopt -u globstar nullglob
 }
 
-[ "$RUN" == true ] && {
-  _info "Running ${C_CYAN}$BUILD_DIR/$OUTPUT${C_DIM}..."
-  [ ! -f "$BUILD_DIR/$OUTPUT" ] && _error "Binary ${C_PATH}$BUILD_DIR/$OUTPUT${C_DIM} not found!" && exit 1
+validate_config() {
+  [[ "$LINK_DRIVER" == ld || "$LINK_DRIVER" == cc ]] ||
+    die "link.driver must be 'ld' or 'cc'."
+  [[ "$DEBUG" == true || "$DEBUG" == false ]] ||
+    die 'build.debug must be true or false.'
+  [[ -n "$BUILD_DIR" && "$BUILD_DIR" != / ]] ||
+    die 'invalid build directory.'
+  [[ -n "$PROJECT_NAME" ]] || die 'project.name cannot be empty.'
 
-  echo
-  if [ "$DEBUG" = true ]; then
-    strace "./$BUILD_DIR/$OUTPUT"
-  else
-    "./$BUILD_DIR/$OUTPUT"
+  [[ -n "$OUTPUT" ]] || OUTPUT="${BUILD_DIR%/}/$PROJECT_NAME"
+
+  if [[ "$COMMAND" != clean && "$COMMAND" != clear ]]; then
+    collect_sources
+    ((${#ASM_SOURCES[@]})) ||
+      die 'no assembly sources found; configure sources.root or sources.asm.'
   fi
-  STATUS=$?
-
-  [ "$CLEAR" == true ] && rm -r "$BUILD_DIR"
-
-  exit $STATUS
 }
 
-[ "$CLEAR" == true ] && [ -d "$BUILD_DIR" ] && rm -r "$BUILD_DIR"
-exit 0
+quote_config_value() {
+  local value=$1
+
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  printf '"%s"' "$value"
+}
+
+init_project() {
+  local project_dir
+  local project_file
+  local source
+  local root
+  local root_seen
+  local existing_root
+  local include_dir
+  local temporary
+  local output_path
+  local build_dir_for_scan=${BUILD_DIR#./}
+  local found_sources=0
+  local has_root_file=false
+  local -a detected_roots=()
+  local -a detected_includes=()
+
+  [[ -n "$BUILD_DIR" && "$BUILD_DIR" != / ]] ||
+    die 'invalid build directory.'
+
+  if [[ -e "$BUILD_FILE" && "$INIT_FORCE" != true ]]; then
+    die "'$BUILD_FILE' already exists (use --force to overwrite it)."
+  fi
+
+  project_dir=${PWD%/}
+  PROJECT_NAME=${project_dir##*/}
+  [[ -n "$PROJECT_NAME" ]] || PROJECT_NAME=project
+  output_path=${OUTPUT:-${BUILD_DIR%/}/$PROJECT_NAME}
+
+  build_dir_for_scan=${build_dir_for_scan%/}
+  shopt -s globstar nullglob
+
+  for source in **/*.asm; do
+    case "$source" in
+    "$build_dir_for_scan"/* | .git/* | .hg/* | .svn/*) continue ;;
+    esac
+
+    found_sources=$((found_sources + 1))
+    case "$source" in
+    */*) root=${source%%/*} ;;
+    *)
+      has_root_file=true
+      root=
+      ;;
+    esac
+
+    if [[ -n "$root" ]]; then
+      root_seen=false
+      for existing_root in "${detected_roots[@]}"; do
+        [[ "$existing_root" == "$root" ]] && root_seen=true
+      done
+      [[ "$root_seen" == true ]] || detected_roots+=("$root")
+    fi
+  done
+
+  shopt -u globstar nullglob
+
+  if [[ "$has_root_file" == true ]]; then
+    detected_roots=(.)
+  fi
+
+  for include_dir in include includes inc; do
+    [[ -d "$include_dir" ]] && detected_includes+=("$include_dir")
+  done
+
+  case "$BUILD_FILE" in
+  */*)
+    project_file=${BUILD_FILE%/*}
+    [[ -n "$project_file" ]] && mkdir -p -- "$project_file"
+    ;;
+  esac
+
+  temporary="${BUILD_FILE}.tmp.${BASHPID}"
+  {
+    printf '# Generated by casm init. Edit this file to configure your project.\n\n'
+    printf '[project]\n'
+    printf 'name = %s\n' "$(quote_config_value "$PROJECT_NAME")"
+    printf 'output = %s\n\n' "$(quote_config_value "$output_path")"
+    printf '[build]\n'
+    printf 'dir = %s\n' "$(quote_config_value "$BUILD_DIR")"
+    printf 'format = "elf64"\n'
+    printf 'debug = false\n\n'
+    printf '[tools]\n'
+    printf 'nasm = "nasm"\n'
+    printf 'ld = "ld"\n'
+    printf 'cc = "gcc"\n\n'
+    printf '[sources]\n'
+
+    if ((${#detected_roots[@]})); then
+      for root in "${detected_roots[@]}"; do
+        printf 'root = %s\n' "$(quote_config_value "$root")"
+      done
+      printf '# All .asm files below these directories are discovered recursively.\n'
+      printf '# exclude = "src/tests/**"\n'
+    else
+      printf '# Add a source directory; all .asm files are discovered recursively.\n'
+      printf '# root = "src"\n'
+      printf '# Or list an individual file with: asm = "src/main.asm"\n'
+    fi
+
+    for include_dir in "${detected_includes[@]}"; do
+      printf 'include = %s\n' "$(quote_config_value "$include_dir")"
+    done
+
+    printf '\n[link]\n'
+    printf 'driver = "ld"\n'
+  } >"$temporary"
+
+  mv -f -- "$temporary" "$BUILD_FILE"
+  ui "Created '$BUILD_FILE'."
+
+  if ((found_sources)); then
+    ui "Detected $found_sources assembly source(s)."
+  else
+    ui_warning 'No .asm files found; add sources to [sources] before building.'
+  fi
+}
+
+safe_build_dir() {
+  local component
+  local current=.
+  local normalized=
+  local has_directory=false
+  local -a components=()
+
+  [[ -n "$BUILD_DIR" && "$BUILD_DIR" != /* &&
+    "$BUILD_DIR" != *$'\n'* ]] ||
+    die "refusing to remove unsafe build directory '$BUILD_DIR'."
+
+  IFS=/ read -r -a components <<<"$BUILD_DIR"
+  for component in "${components[@]}"; do
+    case "$component" in
+    '' | .) continue ;;
+    ..) die "refusing to remove unsafe build directory '$BUILD_DIR'." ;;
+    esac
+
+    if [[ -n "$normalized" ]]; then
+      normalized="$normalized/$component"
+    else
+      normalized=$component
+    fi
+
+    current="${current%/}/$component"
+    [[ ! -L "$current" ]] ||
+      die "refusing to remove build directory through symlink '$current'."
+    has_directory=true
+  done
+
+  [[ "$has_directory" == true ]] ||
+    die "refusing to remove unsafe build directory '$BUILD_DIR'."
+  BUILD_DIR=$normalized
+}
+
+write_signature() {
+  local path=$1
+  local value=$2
+  local temporary="${path}.tmp.${BASHPID}"
+
+  printf '%s\n' "$value" >"$temporary"
+  mv -f -- "$temporary" "$path"
+}
+
+signature_of() {
+  local result
+
+  result=$(printf '%s\0' "$@" | cksum)
+  printf '%s' "${result%% *}"
+}
+
+object_path_for() {
+  local source=${1#./}
+
+  validate_relative_source "$source"
+  [[ "$source" == *.asm ]] || die "expected a .asm source: '$source'."
+  printf '%s/%s.o' "${BUILD_DIR%/}/o" "${source%.asm}"
+}
+
+dependencies_are_fresh() {
+  local depfile=$1
+  local object=$2
+  local contents
+  local token=
+  local character
+  local escaped=false
+  local reading=false
+  local found=false
+  local index=0
+
+  [[ -f "$depfile" ]] || return 1
+  contents=$(<"$depfile")
+  contents=${contents//$'\\\n'/}
+
+  while ((index < ${#contents})); do
+    character=${contents:index:1}
+
+    if [[ "$reading" != true ]]; then
+      [[ "$character" == : ]] && reading=true
+      index=$((index + 1))
+      continue
+    fi
+
+    if [[ "$escaped" == true ]]; then
+      token+=$character
+      escaped=false
+    elif [[ "$character" == \\ ]]; then
+      escaped=true
+    elif [[ "$character" == [[:space:]] ]]; then
+      if [[ -n "$token" ]]; then
+        found=true
+        [[ -f "$token" && ! "$token" -nt "$object" ]] || return 1
+        token=
+      fi
+    else
+      token+=$character
+    fi
+
+    index=$((index + 1))
+  done
+
+  if [[ -n "$token" ]]; then
+    found=true
+    [[ -f "$token" && ! "$token" -nt "$object" ]] || return 1
+  fi
+
+  [[ "$escaped" != true ]] || return 1
+  [[ "$reading" == true && "$found" == true ]]
+}
+
+finish_step() {
+  local label=$1
+  local subject=$2
+
+  STEP_INDEX=$((STEP_INDEX + 1))
+  [[ "$QUIET" == true ]] && return 0
+  render_step '✓' "$C_GREEN" "$label" "$subject"
+}
+
+run_step() {
+  local label=$1
+  local subject=$2
+  local status=0
+  local pid=
+  local frame=0
+  local spinner
+  local log
+  local -a frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  shift 2
+
+  STEP_INDEX=$((STEP_INDEX + 1))
+  mkdir -p -- "${BUILD_DIR%/}"
+  log="${BUILD_DIR%/}/.casm-step-${BASHPID}-${STEP_INDEX}.log"
+  : >"$log"
+
+  if [[ "$VERBOSE" == true && "$QUIET" != true ]]; then
+    clear_progress_line
+    print_command "$@"
+  fi
+
+  if [[ "$ANIMATE" == true ]]; then
+    "$@" >"$log" 2>&1 &
+    pid=$!
+
+    while kill -0 "$pid" 2>/dev/null; do
+      spinner=${frames[frame]}
+      render_step "$spinner" "$C_CYAN" "$label" "$subject"
+      frame=$(((frame + 1) % ${#frames[@]}))
+      sleep 0.08
+    done
+
+    if wait "$pid"; then
+      status=0
+    else
+      status=$?
+    fi
+  elif "$@" >"$log" 2>&1; then
+    status=0
+  else
+    status=$?
+  fi
+
+  if ((status == 0)); then
+    if [[ "$QUIET" != true ]]; then
+      render_step '✓' "$C_GREEN" "$label" "$subject"
+    fi
+    if [[ "$QUIET" != true && -s "$log" ]]; then
+      clear_progress_line
+      cat -- "$log" >&2
+    fi
+  else
+    if [[ "$QUIET" != true ]]; then
+      render_step '✗' "$C_RED" "$label" "$subject"
+    fi
+    clear_progress_line
+    [[ ! -s "$log" ]] || cat -- "$log" >&2
+  fi
+
+  rm -f -- "$log"
+  return "$status"
+}
+
+run_command() {
+  if [[ "$VERBOSE" == true && "$QUIET" != true ]]; then
+    print_command "$@"
+  fi
+  "$@"
+}
+
+build_objects() {
+  local source
+  local include_dir
+  local object
+  local depfile
+  local metadata
+  local source_arg
+  local signature
+  local -a debug_flags=()
+  local -a command=()
+
+  OBJECTS=()
+
+  if [[ "$DEBUG" == true ]]; then
+    debug_flags=(-g -F dwarf)
+  fi
+
+  for include_dir in "${INCLUDE_DIRS[@]}"; do
+    [[ -d "$include_dir" ]] || die "include directory not found: '$include_dir'."
+    NASM_FLAGS+=("-I${include_dir%/}/")
+  done
+
+  for source in "${ASM_SOURCES[@]}"; do
+    [[ -f "$source" ]] || die "source not found: '$source'."
+
+    object=$(object_path_for "$source")
+    depfile="${object}.d"
+    metadata="${object}.cmd"
+    mkdir -p -- "${object%/*}"
+
+    source_arg=$source
+    [[ "$source_arg" == -* ]] && source_arg="./$source_arg"
+
+    command=("$NASM" -f "$FORMAT" "${debug_flags[@]}"
+      "${NASM_FLAGS[@]}" "$source_arg" -o "$object" -MD "$depfile")
+    signature=$(signature_of "${command[@]}")
+
+    if [[ "$FORCE" != true && -f "$object" && -f "$metadata" &&
+      ! "$source" -nt "$object" && $(<"$metadata") == "$signature" ]] &&
+      dependencies_are_fresh "$depfile" "$object"; then
+      finish_step Cached "$source"
+    else
+      run_step Assembling "$source" "${command[@]}" ||
+        die "NASM failed for '$source'."
+      write_signature "$metadata" "$signature"
+    fi
+
+    OBJECTS+=("$object")
+  done
+}
+
+link_objects() {
+  local linker
+  local input
+  local output_dir
+  local metadata="${BUILD_DIR%/}/.link.cmd"
+  local signature
+  local needs_link=true
+  local -a inputs=()
+  local -a command=()
+
+  if [[ "$LINK_DRIVER" == ld ]]; then
+    linker=$LD
+  else
+    linker=$CC
+  fi
+  has_command "$linker" || die "cannot find linker: '$linker'."
+
+  for input in "${LINK_INPUTS[@]}"; do
+    [[ -f "$input" ]] || die "link input not found: '$input'."
+    inputs+=("$input")
+  done
+
+  command=("$linker" "${OBJECTS[@]}" "${inputs[@]}"
+    "${LINK_FLAGS[@]}" -o "$OUTPUT")
+  signature=$(signature_of "${command[@]}")
+
+  if [[ "$FORCE" != true && -f "$OUTPUT" && -f "$metadata" &&
+    $(<"$metadata") == "$signature" ]]; then
+    needs_link=false
+    for input in "${OBJECTS[@]}" "${inputs[@]}"; do
+      if [[ "$input" -nt "$OUTPUT" ]]; then
+        needs_link=true
+        break
+      fi
+    done
+  fi
+
+  if [[ "$needs_link" == false ]]; then
+    finish_step Cached "$OUTPUT"
+    return 0
+  fi
+
+  output_dir=${OUTPUT%/*}
+  if [[ "$output_dir" == "$OUTPUT" ]]; then
+    output_dir=.
+  elif [[ -z "$output_dir" ]]; then
+    output_dir=/
+  fi
+  mkdir -p -- "$output_dir"
+
+  run_step Linking "$OUTPUT" "${command[@]}" || die 'linking failed.'
+  write_signature "$metadata" "$signature"
+}
+
+build_project() {
+  local mode=Release
+
+  has_command "$NASM" || die "cannot find NASM: '$NASM'."
+  has_command cksum || die 'required command not found: cksum.'
+  [[ "$DEBUG" == true ]] && mode=Debug
+
+  STEP_INDEX=0
+  TOTAL_STEPS=$((${#ASM_SOURCES[@]} + 1))
+
+  ui "${C_CYAN}Building${C_RESET} ${C_BOLD}$PROJECT_NAME${C_RESET} ($mode)"
+  if [[ "$VERBOSE" == true ]]; then
+    print_detail "target: $FORMAT · $OUTPUT"
+    print_detail "config: $BUILD_FILE · build directory: $BUILD_DIR"
+    print_detail "assembler: $NASM · linker: $LINK_DRIVER"
+  fi
+
+  build_objects
+  link_objects
+  clear_progress_line
+  ui "${C_GREEN}Finished${C_RESET} '$PROJECT_NAME' ($mode)."
+}
+
+run_project() {
+  local executable=$OUTPUT
+
+  if [[ "$USE_VALGRIND" == true ]]; then
+    has_command valgrind || die 'cannot find valgrind.'
+  elif [[ "$USE_STRACE" == true ]]; then
+    has_command strace || die 'cannot find strace.'
+  fi
+
+  build_project
+  [[ -x "$executable" ]] || die "not an executable: '$OUTPUT'."
+  [[ "$executable" == /* ]] || executable="./$executable"
+
+  ui "${C_CYAN}Running${C_RESET} $OUTPUT"
+
+  if [[ "$USE_VALGRIND" == true ]]; then
+    run_command valgrind --leak-check=full --show-leak-kinds=all \
+      --track-origins=yes "$executable" "${PROGRAM_ARGS[@]}"
+  elif [[ "$USE_STRACE" == true ]]; then
+    run_command strace "$executable" "${PROGRAM_ARGS[@]}"
+  else
+    run_command "$executable" "${PROGRAM_ARGS[@]}"
+  fi
+}
+
+clean_project() {
+  safe_build_dir
+
+  if [[ -d "$BUILD_DIR" || -L "$BUILD_DIR" ]]; then
+    ui "Removing '$BUILD_DIR'."
+    rm -rf -- "$BUILD_DIR"
+  else
+    ui "Nothing to clean."
+  fi
+}
+
+main() {
+  parse_cli "$@"
+  init_terminal
+  validate_cli_context
+
+  case "$COMMAND" in
+  help)
+    usage
+    return 0
+    ;;
+  init)
+    [[ -n "$CLI_BUILD_DIR" ]] && BUILD_DIR=$CLI_BUILD_DIR
+    [[ -n "$CLI_OUTPUT" ]] && OUTPUT=$CLI_OUTPUT
+    init_project
+    return 0
+    ;;
+  esac
+
+  [[ "$CLI_FILE" != true || -f "$BUILD_FILE" ]] ||
+    die "build file not found: '$BUILD_FILE'."
+
+  parse_build_file
+  apply_cli_overrides
+  validate_config
+
+  case "$COMMAND" in
+  build) build_project ;;
+  run) run_project ;;
+  clean | clear) clean_project ;;
+  *) usage_error "unknown command '$COMMAND'." ;;
+  esac
+}
+
+main "$@"
