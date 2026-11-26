@@ -1,30 +1,7 @@
 #!/usr/bin/env bash
 
 _checkCommandExists() {
-  cmd="$1"
-  if ! command -v "$cmd" >/dev/null; then
-    return 1
-  fi
-  return 0
-}
-
-_pull() {
-  local dir="$1"
-  local pre_pull_sha
-  local post_pull_sha
-
-  pre_pull_sha=$(git -C "$dir" rev-parse HEAD)
-  git -C "$dir" pull >&/dev/null
-  post_pull_sha=$(git -C "$dir" rev-parse HEAD)
-
-  if [[ "$pre_pull_sha" != "$post_pull_sha" ]]; then
-    git -C "$dir" log --oneline --graph --color "${pre_pull_sha}".."${post_pull_sha}" | sed 's/^/   /'
-    echo
-    return 0
-  else
-    echo -e "   \e[0;90mAlready up to date.\e[0m\n"
-    return 1
-  fi
+  command -v "$1" >/dev/null 2>&1
 }
 
 _buildZig() {
@@ -33,7 +10,7 @@ _buildZig() {
 }
 
 _buildCargo() {
-  echo -e "\e[0;1;90m   \e[0;1;3;91mcargo\e[0;90m build --m \e[0;3;94m$1/Cargo.toml\e[0;90m -j \"\$(nproc)\" --release\e[0m"
+  echo -e "\e[0;1;90m   \e[0;1;3;91mcargo\e[0;90m build -m \e[0;3;94m$1/Cargo.toml\e[0;90m -j \"\$(nproc)\" --release\e[0m"
   cargo build -m "$1/Cargo.toml" -j "$(nproc)" --release
 }
 
@@ -49,40 +26,210 @@ _buildCMake() {
 
 _compile() {
   local dir="$1"
+  local entry="${dir##*/}"
+  local result=0
+
   echo -e "\e[0;90m   Compiling \e[0;1;3;94m$entry\e[0;90m...\e[0m"
 
-  [[ -f "$dir/build.zig" ]] && _buildZig "$dir"
-  [[ -f "$dir/Cargo.toml" ]] && _buildCargo "$dir"
-  [[ -f "$dir/Makefile" ]] && _buildMakefile "$dir"
-  [[ -f "$dir/CMakeLists.txt" ]] && _buildCMake "$dir" "$dir/build"
+  [[ -f "$dir/build.zig" ]] && _buildZig "$dir" || result=1
+  [[ -f "$dir/Cargo.toml" ]] && _buildCargo "$dir" || result=1
+  [[ -f "$dir/Makefile" ]] && _buildMakefile "$dir" || result=1
+  [[ -f "$dir/CMakeLists.txt" ]] && _buildCMake "$dir" "$dir/build" || result=1
 
   echo
+  return "$result"
 }
 
-sleep 1
-clear
-printf "\e[0;1;93m"
-if _checkCommandExists "figlet"; then
-  figlet -f smslant "Updates"
-else
-  echo "Updates"
-fi
-printf "\e[0m"
+_compileRepository() {
+  local dir="$1"
+  local repo="${dir##*/}"
 
-echo
-if gum confirm "Do you want to start the update now?"; then
-  echo
-  echo -e "\e[0;1;90m:: Update \e[0;1;3;93mstarted\e[0;1;90m...\e[0m"
-elif [ $? -eq 130 ]; then
-  exit 130
-else
-  echo
-  echo -e "\e[0;1;90m:: Update \e[0;1;3;91mcanceled\e[0;1;90m.\e[0m"
-  exit
-fi
+  if [[ "$repo" != *"template"* ]]; then
+    _compile "$dir"
+  else
+    echo -e "   \e[0;90mNo need to compile template repositories\e[0m\n"
+  fi
+}
 
-# Pacman
-if _checkCommandExists "pacman"; then
+_addRepository() {
+  local dir="$1"
+  local label="$2"
+  local should_compile="$3"
+  local real_dir
+  local existing
+
+  real_dir=$(cd "$dir" 2>/dev/null && pwd -P) || return 1
+
+  [[ -n "${QUICKSHELL_REAL_DIR:-}" && "$real_dir" == "$QUICKSHELL_REAL_DIR" ]] && return 0
+
+  for existing in "${REPO_DIRS[@]}"; do
+    [[ "$existing" == "$real_dir" ]] && return 0
+  done
+
+  REPO_DIRS+=("$real_dir")
+  REPO_LABELS+=("$label")
+  REPO_COMPILE+=("$should_compile")
+}
+
+_pullRepository() {
+  local dir="$1"
+  local work_dir="$2"
+  local pre_pull_sha
+  local post_pull_sha
+
+  mkdir -p "$work_dir"
+  : >"$work_dir/display.log"
+
+  if ! pre_pull_sha=$(git -C "$dir" rev-parse HEAD 2>"$work_dir/rev-parse.log"); then
+    echo "failed" >"$work_dir/status"
+    echo -e "   \e[0;1;93mWARN\e[0;1;90m - Git pull failed.\e[0m" >"$work_dir/display.log"
+    sed 's/^/   /' "$work_dir/rev-parse.log" >>"$work_dir/display.log"
+    return 1
+  fi
+
+  if ! git -C "$dir" pull --quiet >"$work_dir/pull.log" 2>&1; then
+    echo "failed" >"$work_dir/status"
+    echo -e "   \e[0;1;93mWARN\e[0;1;90m - Git pull failed.\e[0m" >"$work_dir/display.log"
+    sed 's/^/   /' "$work_dir/pull.log" >>"$work_dir/display.log"
+    return 1
+  fi
+
+  if ! post_pull_sha=$(git -C "$dir" rev-parse HEAD 2>"$work_dir/rev-parse.log"); then
+    echo "failed" >"$work_dir/status"
+    echo -e "   \e[0;1;93mWARN\e[0;1;90m - Git pull failed.\e[0m" >"$work_dir/display.log"
+    sed 's/^/   /' "$work_dir/rev-parse.log" >>"$work_dir/display.log"
+    return 1
+  fi
+
+  if [[ "$pre_pull_sha" != "$post_pull_sha" ]]; then
+    if git -C "$dir" log --oneline --graph --color \
+      "${pre_pull_sha}..${post_pull_sha}" \
+      >"$work_dir/commits.log" 2>"$work_dir/log.log"; then
+      sed 's/^/   /' "$work_dir/commits.log" >"$work_dir/display.log"
+    else
+      echo -e "   \e[0;1;93mWARN\e[0;1;90m - Unable to display Git history.\e[0m" >"$work_dir/display.log"
+      sed 's/^/   /' "$work_dir/log.log" >>"$work_dir/display.log"
+    fi
+    echo "changed" >"$work_dir/status"
+  else
+    echo "unchanged" >"$work_dir/status"
+    echo -e "   \e[0;90mAlready up to date.\e[0m" >"$work_dir/display.log"
+  fi
+}
+
+_drawProgress() {
+  local done="$PROGRESS_DONE"
+  local total="$PROGRESS_TOTAL"
+  local width=28
+  local filled
+  local percent
+  local filled_bar=""
+  local empty_bar=""
+  local i
+  local terminal_size
+
+  [[ "$UI_TTY" == 1 ]] || return 0
+
+  terminal_size=$(stty size </dev/tty 2>/dev/null)
+  if [[ "$terminal_size" =~ ^([0-9]+)[[:space:]]+([0-9]+)$ ]] &&
+    ((BASH_REMATCH[1] >= 5 && BASH_REMATCH[2] >= 1)); then
+    if [[ "${BASH_REMATCH[1]}" != "$TERM_ROWS" ]]; then
+      TERM_ROWS="${BASH_REMATCH[1]}"
+      echo -ne "\e7\e[1;$((TERM_ROWS - 1))r\e8"
+    fi
+    TERM_COLS="${BASH_REMATCH[2]}"
+  fi
+
+  ((total > 0)) || total=1
+  ((done > total)) && done=$total
+
+  if ((TERM_COLS < 62)); then
+    width=$((TERM_COLS - 34))
+    ((width < 8)) && width=8
+  fi
+
+  filled=$((done * width / total))
+  percent=$((done * 100 / total))
+
+  for ((i = 0; i < filled; i++)); do
+    filled_bar+="━"
+  done
+  for ((i = filled; i < width; i++)); do
+    empty_bar+="─"
+  done
+
+  echo -ne "\e7\e[${TERM_ROWS};1H\e[2K\e[0;1;90m:: \e[0;1;3;94mUpdate \e[0;90m[\e[0;1;3;94m${filled_bar}\e[0;90m${empty_bar}] \e[0;1;3;93m${percent}% \e[0;90m${done}/${total}\e[0m\e8"
+}
+
+_startUI() {
+  local terminal_size
+
+  UI_TTY=0
+  UI_ACTIVE=0
+  TERM_ROWS="${LINES:-24}"
+  TERM_COLS="${COLUMNS:-80}"
+  [[ "$TERM_ROWS" =~ ^[0-9]+$ ]] || TERM_ROWS=24
+  [[ "$TERM_COLS" =~ ^[0-9]+$ ]] || TERM_COLS=80
+
+  [[ -t 1 && -t 0 && "${TERM:-dumb}" != "dumb" ]] || return 0
+
+  terminal_size=$(stty size </dev/tty 2>/dev/null)
+  if [[ "$terminal_size" =~ ^([0-9]+)[[:space:]]+([0-9]+)$ ]] &&
+    ((BASH_REMATCH[1] >= 5 && BASH_REMATCH[2] >= 1)); then
+    TERM_ROWS="${BASH_REMATCH[1]}"
+    TERM_COLS="${BASH_REMATCH[2]}"
+  fi
+
+  ((TERM_ROWS >= 5)) || TERM_ROWS=24
+  ((TERM_COLS >= 40)) || TERM_COLS=40
+
+  UI_TTY=1
+  UI_ACTIVE=1
+
+  echo -ne "\e7\e[1;$((TERM_ROWS - 1))r\e8"
+  _drawProgress
+}
+
+_finishUI() {
+  if ((UI_ACTIVE)); then
+    echo -ne "\e7\e[r\e[${TERM_ROWS};1H\e[2K\e8\e[0m"
+    UI_ACTIVE=0
+  fi
+}
+
+_runTask() {
+  local label="$1"
+  local result=0
+  shift
+
+  [[ -n "$label" ]] && echo -e "\e[0;1;90m:: \e[0;1;3;94m${label}\e[0m"
+
+  "$@" || result=$?
+  ((result != 0)) && echo -e "   \e[0;1;93mWARN\e[0;1;90m - Command failed (exit ${result}).\e[0m"
+
+  PROGRESS_DONE=$((PROGRESS_DONE + 1))
+  echo
+  _drawProgress
+  return 0
+}
+
+_runRepositoryTask() {
+  local label="$1"
+  local dir="$2"
+  local work_dir="$3"
+
+  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m${label}\e[0m"
+  mkdir -p "$work_dir"
+  _pullRepository "$dir" "$work_dir" || true
+
+  [[ -s "$work_dir/display.log" ]] && cat "$work_dir/display.log"
+
+  echo
+  PROGRESS_DONE=$((PROGRESS_DONE + 1))
+  _drawProgress
+}
+
+_updatePackages() {
   if _checkCommandExists "yay"; then
     yay
   elif _checkCommandExists "paru"; then
@@ -90,84 +237,243 @@ if _checkCommandExists "pacman"; then
   else
     pacman -Syu --noconfirm
   fi
-else
+}
+
+_warnNoPacman() {
   echo -e "\e[0;1;90m:: \e[0;1;93mWARN\e[0;1;90m - Script is made for \e[0;1;3;96mArch Linux\e[0;1;90m only, skipping package manager update...\e[0m"
-fi
-echo
+}
 
-# Flatpak
-if _checkCommandExists "flatpak"; then
-  echo -e "\e[0;1;90m:: Searching for \e[0;1;3;94mFlatpak\e[0;90m updates...\e[0m"
-  flatpak update
-  echo
-fi
-
-# Rustup
-if _checkCommandExists "rustup"; then
-  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94mrustup\e[0m"
-  rustup update
-  echo
-fi
-
-# Cargo Crates
-if _checkCommandExists "cargo" && _checkCommandExists "awk"; then
-  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94mcargo crates\e[0m"
-  cargo install --list | awk 'match($0, /^((\S+)\s+v\S+(\s+\(([^[:space:]?#)]+)(\?(branch|tag|rev)=([^[:space:]#)]+))?(#[^[:space:])]+)?\))?):/, m) { if (!m[4]) { cmd="cargo install " m[2] } else if (!m[8]) { print "\033[33mWarning: Skipping " m[1] "\033[0m" > "/dev/stderr"; cmd="" } else if (m[6]) { cmd="cargo install --git " m[4] " --" m[6] " " m[7] " " m[2] } else { cmd="cargo install --git " m[4] " " m[2] }; if (cmd) system(cmd) }'
-  echo
-fi
-
-# Zinit
-if _checkCommandExists "zsh"; then
+_updateZinit() {
   SKIP_EXEC_ZSH=1 zsh -i -c '
     if type zinit >/dev/null 2>&1; then
-      echo -e "\e[0;1;90m:: Updating \e[0;1;3;94mzinit\e[0m"
       zinit self-update
       zinit update
-      echo
     fi
   '
-fi
+}
 
-# pnpm
-if _checkCommandExists "pnpm"; then
-  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94mpnpm\e[0m"
-  pnpm self-update
+_updateCargoCrates() {
+  cargo install --list | awk 'match($0, /^((\S+)\s+v\S+(\s+\(([^[:space:]?#)]+)(\?(branch|tag|rev)=([^[:space:]#)]+))?(#[^[:space:])]+)?\))?):/, m) { if (!m[4]) { cmd="cargo install " m[2] } else if (!m[8]) { print "\033[33mWarning: Skipping " m[1] "\033[0m" > "/dev/stderr"; cmd="" } else if (m[6]) { cmd="cargo install --git " m[4] " --" m[6] " " m[7] " " m[2] } else { cmd="cargo install --git " m[4] " " m[2] }; if (cmd) system(cmd) }'
+}
+
+_reloadQuickshell() {
+  killall qs 2>/dev/null
+  qs -c "$QUICKSHELL_NAME" >/dev/null 2>&1 &
+  disown
+}
+
+_reloadWaybar() {
+  pkill -RTMIN+1 waybar 2>/dev/null || true
+}
+
+_cleanup() {
+  local pid
+
+  for pid in "${!ACTIVE_REPO_PIDS[@]}"; do
+    kill "$pid" 2>/dev/null
+  done
+  for pid in "${!ACTIVE_REPO_PIDS[@]}"; do
+    wait "$pid" 2>/dev/null
+  done
+
+  _finishUI
+
+  [[ -n "${RUN_TMPDIR:-}" && -d "$RUN_TMPDIR" ]] && rm -rf -- "$RUN_TMPDIR"
+}
+
+sleep 1
+clear
+echo -ne "\e[0;1;93m"
+if _checkCommandExists "figlet"; then
+  figlet -f smslant "Updates"
+else
+  echo "Updates"
+fi
+echo -ne "\e[0m"
+
+echo
+if gum confirm "Do you want to start the update now?"; then
   echo
+else
+  confirm_status=$?
+  [[ "$confirm_status" -eq 130 ]] && exit 130
+  echo
+  echo -e "\e[0;1;90m:: Update \e[0;1;3;91mcanceled\e[0;1;90m.\e[0m"
+  exit 0
 fi
 
-# dotfiles
-dotfiles_repo="YetAnotherMechanicusEnjoyer/dotfiles"
-if [[ -d "$DOTFILES/.git" ]]; then
-  echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m$dotfiles_repo\e[0m"
-  _pull "$DOTFILES"
+GIT_UPDATE_JOBS=${GIT_UPDATE_JOBS:-4}
+[[ "$GIT_UPDATE_JOBS" =~ ^[1-9][0-9]*$ ]] || GIT_UPDATE_JOBS=4
+
+RUN_TMPDIR=$(mktemp -d) || exit 1
+trap _cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+REPO_DIRS=()
+REPO_LABELS=()
+REPO_COMPILE=()
+REPO_CHANGED=()
+declare -A ACTIVE_REPO_PIDS=()
+UI_TTY=0
+UI_ACTIVE=0
+TERM_ROWS=24
+TERM_COLS=80
+PROGRESS_DONE=0
+PROGRESS_TOTAL=0
+
+QUICKSHELL_CONFIG="${QUICKSHELL_CONFIG:-$HOME/.config/quickshell/end4-pC}"
+while [[ "$QUICKSHELL_CONFIG" == */ ]]; do
+  QUICKSHELL_CONFIG="${QUICKSHELL_CONFIG%/}"
+done
+QUICKSHELL_NAME="${QUICKSHELL_CONFIG##*/}"
+QUICKSHELL_REAL_DIR=""
+if [[ -d "$QUICKSHELL_CONFIG" ]]; then
+  QUICKSHELL_REAL_DIR=$(cd "$QUICKSHELL_CONFIG" 2>/dev/null && pwd -P)
 fi
 
-# dotfiles repositories
-if [[ -d "$REPODIR" ]]; then
+DOTFILES_REPO="YetAnotherMechanicusEnjoyer/dotfiles"
+[[ -n "${DOTFILES:-}" && -e "$DOTFILES/.git" ]] && _addRepository "$DOTFILES" "$DOTFILES_REPO" 0
+
+if [[ -n "${REPODIR:-}" && -d "$REPODIR" ]]; then
+  shopt -s nullglob
   for entry in "$REPODIR"/*; do
-    [[ ! -d "$entry/.git" ]] && continue
+    [[ -d "$entry" && -e "$entry/.git" ]] || continue
 
     url=$(git -C "$entry" remote get-url origin 2>/dev/null)
-    author=$(echo "$url" | sed -E 's/\.git$//; s/.*[:\/]([^\/]+)\/[^\/]+$/\1/')
-    [[ -z "$author" ]] && author="local"
-
+    author=$(echo "$url" | sed -E 's/\.git$//; s#.*[:/]([^/:]+)/[^/]+$#\1#')
+    [[ -z "$author" ]] && continue
     repo="${entry##*/}"
 
-    echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m$author/$repo\e[0m"
-
-    if _pull "$REPODIR/$repo"; then
-      if [[ "$repo" != *"template"* ]]; then
-        _compile "$REPODIR/$repo"
-      else
-        echo -e "   \e[0;90mNo need to compile template repositories\e[0m\n"
-      fi
-    fi
+    _addRepository "$entry" "$author/$repo" 1
   done
+  shopt -u nullglob
+fi
+
+repo_count=${#REPO_DIRS[@]}
+compile_count=0
+for ((i = 0; i < repo_count; i++)); do
+  [[ "${REPO_COMPILE[i]}" == 1 ]] && ((compile_count++))
+done
+
+((PROGRESS_TOTAL++))
+_checkCommandExists "flatpak" && ((PROGRESS_TOTAL++))
+_checkCommandExists "rustup" && ((PROGRESS_TOTAL++))
+if _checkCommandExists "cargo" && _checkCommandExists "awk"; then
+  ((PROGRESS_TOTAL++))
+fi
+_checkCommandExists "zsh" && ((PROGRESS_TOTAL++))
+_checkCommandExists "pnpm" && ((PROGRESS_TOTAL++))
+((PROGRESS_TOTAL += repo_count + compile_count))
+if [[ -d "$QUICKSHELL_CONFIG" ]]; then
+  [[ -e "$QUICKSHELL_CONFIG/.git" ]] && ((PROGRESS_TOTAL++))
+  _checkCommandExists "qs" && ((PROGRESS_TOTAL++))
+fi
+((PROGRESS_TOTAL++))
+
+_startUI
+
+# System package manager
+if _checkCommandExists "pacman"; then
+  _runTask "Updating system packages" _updatePackages
+else
+  _runTask "Arch package manager" _warnNoPacman
+fi
+
+# Flatpak
+_checkCommandExists "flatpak" && _runTask "Searching for Flatpak updates" flatpak update
+
+# Rustup
+_checkCommandExists "rustup" && _runTask "Updating rustup" rustup update
+
+# Cargo Crates
+_checkCommandExists "cargo" && _checkCommandExists "awk" && _runTask "Updating cargo crates" _updateCargoCrates
+
+# Zinit
+_checkCommandExists "zsh" && _runTask "Updating zinit" _updateZinit
+
+# pnpm
+_checkCommandExists "pnpm" && _runTask "Updating pnpm" pnpm self-update
+
+next_repo=0
+next_display=0
+REPO_FINISHED=()
+while ((next_repo < repo_count || ${#ACTIVE_REPO_PIDS[@]} > 0)); do
+  while ((next_repo < repo_count && ${#ACTIVE_REPO_PIDS[@]} < GIT_UPDATE_JOBS)); do
+    work_dir="$RUN_TMPDIR/repository-$next_repo"
+    mkdir -p "$work_dir"
+
+    _pullRepository "${REPO_DIRS[next_repo]}" "$work_dir" &
+    ACTIVE_REPO_PIDS[$!]=$next_repo
+    ((next_repo++))
+  done
+
+  if ((${#ACTIVE_REPO_PIDS[@]} == 0)); then
+    break
+  fi
+
+  finished_pid=""
+  wait -n -p finished_pid "${!ACTIVE_REPO_PIDS[@]}" 2>/dev/null || true
+  if [[ -z "$finished_pid" ]]; then
+    sleep 0.1
+    continue
+  fi
+
+  finished_repo=${ACTIVE_REPO_PIDS[$finished_pid]}
+  unset 'ACTIVE_REPO_PIDS[$finished_pid]'
+  REPO_FINISHED[finished_repo]=1
+
+  work_dir="$RUN_TMPDIR/repository-$finished_repo"
+  status="failed"
+  [[ -r "$work_dir/status" ]] && status=$(<"$work_dir/status")
+  [[ "$status" == "changed" ]] && REPO_CHANGED[finished_repo]=1
+
+  PROGRESS_DONE=$((PROGRESS_DONE + 1))
+  _drawProgress
+
+  while ((next_display < repo_count)) &&
+    [[ "${REPO_FINISHED[next_display]:-0}" == 1 ]]; do
+    display_dir="$RUN_TMPDIR/repository-$next_display"
+    display_status="failed"
+    [[ -r "$display_dir/status" ]] && display_status=$(<"$display_dir/status")
+
+    echo -e "\e[0;1;90m:: Updating \e[0;1;3;94m${REPO_LABELS[next_display]}\e[0m"
+    if [[ -s "$display_dir/display.log" ]]; then
+      cat "$display_dir/display.log"
+    elif [[ "$display_status" == "failed" ]]; then
+      echo -e "   \e[0;1;93mWARN\e[0;1;90m - Git pull failed.\e[0m"
+    fi
+    echo
+
+    ((next_display++))
+  done
+done
+
+for ((i = 0; i < repo_count; i++)); do
+  [[ "${REPO_COMPILE[i]}" == 1 ]] || continue
+
+  if [[ "${REPO_CHANGED[i]:-0}" == 1 ]]; then
+    _runTask "" _compileRepository "${REPO_DIRS[i]}"
+  else
+    PROGRESS_DONE=$((PROGRESS_DONE + 1))
+    _drawProgress
+  fi
+done
+
+if [[ -d "$QUICKSHELL_CONFIG" ]]; then
+  if [[ -e "$QUICKSHELL_CONFIG/.git" ]]; then
+    _runRepositoryTask "Updating Quickshell config" "$QUICKSHELL_CONFIG" \
+      "$RUN_TMPDIR/quickshell"
+  fi
+
+  _checkCommandExists "qs" && _runTask "Reloading Quickshell" _reloadQuickshell
 fi
 
 # Reload Waybar
-pkill -RTMIN+1 waybar
+_runTask "Reloading Waybar" _reloadWaybar
+
+_finishUI
 
 echo -e "\e[0;1;90m:: Update \e[0;1;3;92mcomplete\e[0;90m!\e[0m"
-printf "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
-read
+echo -ne "\e[0;90m:: Press \e[1;94m[ENTER]\e[0;90m to close.\e[0m"
+read -r _ || true
